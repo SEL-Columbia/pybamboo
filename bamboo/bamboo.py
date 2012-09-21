@@ -48,18 +48,13 @@ class Bamboo(object):
         req = requests.get(url)
         self._check_response(req, (200, 202))
 
-        try:
-            response = json.loads(req.text)
+        response = self._safe_json_loads(req)
 
-            value = response.get(field).get('summary')
-            if method in value:
-                return float(value.get(method))
-            else:
-                return sum([int(relval) for relval in value.values()])
-
-        except:
-            raise ErrorRetrievingBambooData
-        return 0
+        value = response.get(field).get('summary')
+        if method in value:
+            return float(value.get(method))
+        else:
+            return sum([int(relval) for relval in value.values()])
 
     def query(self, dataset_id, select=None, query=None, group=None,
               as_summary=False, first=False, last=False):
@@ -85,16 +80,15 @@ class Bamboo(object):
         req = requests.get(url, params=params)
 
         self._check_response(req, (200, 202))
-        try:
-            response = json.loads(req.text)
-            if last:
-                return response[-1]
-            elif first:
-                return response[0]
-            else:
-                return response
-        except Exception as e:
-            raise ErrorParsingBambooData(e.message)
+
+        response = self._safe_json_loads(req)
+
+        if last:
+            return response[-1]
+        elif first:
+            return response[0]
+        else:
+            return response
 
     def store_calculation(self, dataset_id, formula_name, formula):
         url = self.get_dataset_calculations_url(dataset_id)
@@ -106,23 +100,27 @@ class Bamboo(object):
 
         self._check_response(req)
 
-        try:
-            return json.loads(req.text)
-        except Exception as e:
-            raise ErrorParsingBambooData(e.message)
+        return self._safe_json_loads(req)
 
     def store_csv_file(self, csv_file_str):
         files = {'csv_file': ('data.csv', open(csv_file_str))}
         req = requests.post('%s/datasets' % self.BAMBOO_URL, files=files)
         self._check_response(req)
-        return json.loads(req.text)
+        return self._safe_json_loads(req)
 
     def delete_dataset(self, dataset_id):
         req = requests.delete(self.get_dataset_url(dataset_id))
         self._check_response(req)
         return json.loads(req.text)
 
-    def _check_response(self, req, ok_status_codes=OK_STATUS_CODES):
+    def _check_response(self, req, ok_status_codes=None):
+        if ok_status_codes is None:
+            ok_status_codes = self.OK_STATUS_CODES
         if not req.status_code in ok_status_codes:
             raise ErrorRetrievingBambooData(u"%d Status Code received."
                                             % req.status_code)
+    def _safe_json_loads(self, req):
+        try:
+            return json.loads(req.text)
+        except:
+            raise ErrorParsingBambooData
