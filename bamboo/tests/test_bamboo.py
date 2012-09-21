@@ -1,4 +1,5 @@
 from test_base import TestBase
+from bamboo.bamboo import ErrorParsingBambooData, ErrorRetrievingBambooData
 
 
 class TestBamboo(TestBase):
@@ -84,8 +85,41 @@ class TestBamboo(TestBase):
         self.assertTrue(isinstance(response, list))
         self.assertEqual(len(response), self.NUM_ROWS)
 
+    def test_query_select(self):
+        self._store_csv()
+        response = self.bamboo.query(self.dataset_id, select={'amount': 1})
+        self.assertTrue(isinstance(response, list))
+        self.assertEqual(len(response), self.NUM_ROWS)
+
+    def test_query_first(self):
+        self._store_csv()
+        response = self.bamboo.query(self.dataset_id, first=True)
+        self.assertTrue(isinstance(response, dict))
+        self.assertEqual(len(response), self.NUM_COLS)
+
+    def test_query_last(self):
+        self._store_csv()
+        response = self.bamboo.query(self.dataset_id, last=True)
+        self.assertTrue(isinstance(response, dict))
+        self.assertEqual(len(response), self.NUM_COLS)
+
     def test_query_summary(self):
         self._store_csv()
         response = self.bamboo.query(self.dataset_id, as_summary=True)
         self.assertTrue(isinstance(response, dict))
         self.assertEqual(len(response), self.NUM_COLS)
+
+    def test_bad_url(self):
+        self.bamboo.BAMBOO_URL = 'http://google.com'
+        try:
+            self._store_csv()
+        except ErrorRetrievingBambooData:
+            pass
+
+    def test_bad_response(self):
+        self.bamboo.BAMBOO_URL = 'http://google.com'
+        self.bamboo.OK_STATUS_CODES = self.bamboo.OK_STATUS_CODES + (404,)
+        try:
+            self._store_csv()
+        except ErrorParsingBambooData:
+            pass

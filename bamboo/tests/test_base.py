@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from bamboo import Bamboo
+from bamboo.bamboo import Bamboo
 
 
 class TestBase(unittest.TestCase):
