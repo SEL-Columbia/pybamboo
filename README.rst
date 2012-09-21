@@ -16,6 +16,12 @@ Installation
 Testing
 -------
 
+    clone repository
+
+::
+    $ git clone git://github.com/modilabs/pybamboo.git
+    $ cd pybamboo
+
     install nose testing requirements
     
     ``$ pip install -r requirements-test.pip``
