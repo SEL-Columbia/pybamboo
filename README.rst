@@ -11,22 +11,27 @@ Python client for the bamboo_ webservice.
 Installation
 ------------
 
-    ``$ pip install pybamboo``
+``$ pip install pybamboo``
 
 Testing
 -------
 
-    clone repository
+clone repository
 
 ::
+
     $ git clone git://github.com/modilabs/pybamboo.git
     $ cd pybamboo
 
-    install nose testing requirements
-    
-    ``$ pip install -r requirements-test.pip``
 
-    run tests
+install requirements
+
+::
+
+    $ pip install -r requirements.pip
+    $ pip install -r requirements-test.pip
+
+run tests
 
 ::
 
