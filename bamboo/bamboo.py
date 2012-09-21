@@ -112,7 +112,7 @@ class Bamboo(object):
             raise ErrorParsingBambooData(e.message)
 
     def store_csv_file(self, csv_file_str):
-        files = {"csv_file": ('data.csv', open(csv_file_str))}
+        files = {'csv_file': ('data.csv', open(csv_file_str))}
         req = requests.post('%s/datasets' % self.BAMBOO_URL, files=files)
         self._check_response(req)
         return json.loads(req.text)
