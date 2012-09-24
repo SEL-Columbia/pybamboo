@@ -42,6 +42,7 @@ run tests
 
 About
 -----
+
 Bamboo is an open source project. The project features, in chronological order,
 the combined efforts of
 
