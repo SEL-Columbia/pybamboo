@@ -3,6 +3,6 @@ python:
   - "2.6"
 install:
   - pip install -r requirements.pip --use-mirrors
-script: cd bamboo && nosetests
+script: cd pybamboo && nosetests
 notifications:
   irc: "irc.freenode.org#moditest"
