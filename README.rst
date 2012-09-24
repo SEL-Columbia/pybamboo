@@ -11,6 +11,8 @@ Python client for the bamboo_ webservice.
 Installation
 ------------
 
+via pip
+
 ``$ pip install pybamboo``
 
 Testing
