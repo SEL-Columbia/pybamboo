@@ -35,7 +35,7 @@ run tests
 
 ::
 
-    $ cd bamboo
+    $ cd pybamboo
     $ nosetests --with-cov --cov-report term-missing
 
 About

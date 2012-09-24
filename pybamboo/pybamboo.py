@@ -10,7 +10,7 @@ class ErrorParsingBambooData(ValueError):
     pass
 
 
-class Bamboo(object):
+class PyBamboo(object):
     BAMBOO_URL = 'http://bamboo.io'
     OK_STATUS_CODES = (200, 201, 202)
 

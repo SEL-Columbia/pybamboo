@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from bamboo.bamboo import Bamboo
+from pybamboo.pybamboo import PyBamboo
 
 
 class TestBase(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestBase(unittest.TestCase):
     NUM_ROWS = 19
 
     def setUp(self):
-        self.bamboo = Bamboo()
+        self.pybamboo = PyBamboo()
         self.dataset_id = None
 
     def tearDown(self):
@@ -19,4 +19,4 @@ class TestBase(unittest.TestCase):
             self._delete_dataset()
 
     def _delete_dataset(self):
-        self.bamboo.delete_dataset(self.dataset_id)
+        self.pybamboo.delete_dataset(self.dataset_id)
