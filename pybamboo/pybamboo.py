@@ -14,7 +14,7 @@ DEFAULT_BAMBOO_URL = 'http://bamboo.io'
 
 
 class PyBamboo(object):
-    
+
     OK_STATUS_CODES = (200, 201, 202)
 
     def __init__(self, bamboo_url=DEFAULT_BAMBOO_URL):
@@ -130,6 +130,7 @@ class PyBamboo(object):
         if not req.status_code in ok_status_codes:
             raise ErrorRetrievingBambooData(u"%d Status Code received."
                                             % req.status_code)
+
     def _safe_json_loads(self, req):
         try:
             return json.loads(req.text)
