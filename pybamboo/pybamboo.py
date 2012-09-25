@@ -10,12 +10,18 @@ class ErrorParsingBambooData(ValueError):
     pass
 
 
+DEFAULT_BAMBOO_URL = 'http://bamboo.io'
+
+
 class PyBamboo(object):
-    BAMBOO_URL = 'http://bamboo.io'
+    
     OK_STATUS_CODES = (200, 201, 202)
 
+    def __init__(self, bamboo_url=DEFAULT_BAMBOO_URL):
+        self._bamboo_url = bamboo_url
+
     def get_url(self):
-        return self.BAMBOO_URL
+        return self._bamboo_url
 
     def get_dataset_url(self, dataset_id):
         data = {'bamboo_url': self.get_url(),
@@ -94,7 +100,7 @@ class PyBamboo(object):
         url = self.get_dataset_calculations_url(dataset_id)
 
         data = {'name': formula_name,
-                  'formula': formula}
+                'formula': formula}
 
         req = requests.post(url, data=data)
 
