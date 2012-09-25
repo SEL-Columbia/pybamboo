@@ -110,14 +110,14 @@ class TestPyBamboo(TestBase):
         self.assertEqual(len(response), self.NUM_COLS)
 
     def test_bad_url(self):
-        self.pybamboo.BAMBOO_URL = 'http://google.com'
+        self.pybamboo.url = 'http://google.com'
         try:
             self._store_csv()
         except ErrorRetrievingBambooData:
             pass
 
     def test_bad_response(self):
-        self.pybamboo.BAMBOO_URL = 'http://google.com'
+        self.pybamboo.url = 'http://google.com'
         self.pybamboo.OK_STATUS_CODES = self.pybamboo.OK_STATUS_CODES + (404,)
         try:
             self._store_csv()

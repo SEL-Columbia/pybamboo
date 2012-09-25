@@ -23,6 +23,11 @@ class PyBamboo(object):
     def get_url(self):
         return self._bamboo_url
 
+    def set_url(self, url):
+        self._bamboo_url = url
+
+    url = property(get_url, set_url)
+
     def get_dataset_url(self, dataset_id):
         data = {'bamboo_url': self.get_url(),
                 'dataset': dataset_id}
@@ -110,7 +115,7 @@ class PyBamboo(object):
 
     def store_csv_file(self, csv_file_str):
         files = {'csv_file': ('data.csv', open(csv_file_str))}
-        req = requests.post('%s/datasets' % self.BAMBOO_URL, files=files)
+        req = requests.post('%s/datasets' % self.url, files=files)
         self._check_response(req)
         return self._safe_json_loads(req)
 
