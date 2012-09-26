@@ -1,5 +1,6 @@
 from test_base import TestBase
-from pybamboo.pybamboo import ErrorParsingBambooData, ErrorRetrievingBambooData
+from pybamboo.pybamboo import ErrorParsingBambooData,\
+    ErrorRetrievingBambooData, PyBamboo
 
 
 class TestPyBamboo(TestBase):
@@ -16,21 +17,36 @@ class TestPyBamboo(TestBase):
     def test_get_url(self):
         self.assertTrue(isinstance(self.pybamboo.get_url(), basestring))
 
+    def test_set_url(self):
+        test_url = 'testurl'
+        pybamboo = PyBamboo(test_url)
+        self.assertEqual(pybamboo.get_url(), test_url)
+
     def test_get_dataset_url(self):
-        self.assertTrue(isinstance(self.pybamboo.get_dataset_url(self.fake_id), basestring))
-        self.assertTrue('datasets' in self.pybamboo.get_dataset_url(self.fake_id))
+        self.assertTrue(isinstance(self.pybamboo.get_dataset_url(self.fake_id),
+                                   basestring))
+        self.assertTrue('datasets' in self.pybamboo.get_dataset_url(
+            self.fake_id))
 
     def test_get_dataset_summary_url(self):
-        self.assertTrue(isinstance(self.pybamboo.get_dataset_summary_url(self.fake_id), basestring))
-        self.assertTrue('summary' in self.pybamboo.get_dataset_summary_url(self.fake_id))
+        self.assertTrue(isinstance(self.pybamboo.get_dataset_summary_url(
+            self.fake_id), basestring))
+        self.assertTrue('summary' in self.pybamboo.get_dataset_summary_url(
+            self.fake_id))
 
     def test_get_dataset_info_url(self):
-        self.assertTrue(isinstance(self.pybamboo.get_dataset_info_url(self.fake_id), basestring))
-        self.assertTrue('info' in self.pybamboo.get_dataset_info_url(self.fake_id))
+        self.assertTrue(isinstance(
+            self.pybamboo.get_dataset_info_url(self.fake_id), basestring))
+        self.assertTrue('info' in self.pybamboo.get_dataset_info_url(
+            self.fake_id))
 
     def test_get_dataset_calculations_url(self):
-        self.assertTrue(isinstance(self.pybamboo.get_dataset_calculations_url(self.fake_id), basestring))
-        self.assertTrue('calculations' in self.pybamboo.get_dataset_calculations_url(self.fake_id))
+        self.assertTrue(isinstance(
+            self.pybamboo.get_dataset_calculations_url(self.fake_id),
+            basestring))
+        self.assertTrue(
+            'calculations' in self.pybamboo.get_dataset_calculations_url(
+                self.fake_id))
 
     def test_store_csv_file(self):
         response = self._store_csv()
@@ -46,7 +62,8 @@ class TestPyBamboo(TestBase):
         self._store_csv()
         name = 'amount_gps_alt'
         formula = 'amount+gps_alt'
-        response = self.pybamboo.store_calculation(self.dataset_id, name, formula)
+        response = self.pybamboo.store_calculation(
+            self.dataset_id, name, formula)
         self.assertTrue('name' in response)
         self.assertEqual(response['name'], name)
         self.assertTrue('formula' in response)
@@ -68,13 +85,15 @@ class TestPyBamboo(TestBase):
 
     def test_count_submissions_mean(self):
         self._store_csv()
-        mean = self.pybamboo.count_submissions(self.dataset_id, 'amount', 'mean')
+        mean = self.pybamboo.count_submissions(
+            self.dataset_id, 'amount', 'mean')
         mean = float(mean)
         self.assertTrue(isinstance(mean, float))
 
     def test_count_submissions_mean_dimension(self):
         self._store_csv()
-        mean = self.pybamboo.count_submissions(self.dataset_id, 'rating', 'mean')
+        mean = self.pybamboo.count_submissions(
+            self.dataset_id, 'rating', 'mean')
         mean = float(mean)
         self.assertTrue(isinstance(mean, float))
         self.assertEqual(mean, self.NUM_ROWS)
