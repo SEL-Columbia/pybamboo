@@ -157,3 +157,10 @@ class TestPyBamboo(TestBase):
         # cleanup, tearDown will cleanup dataset_id2
         self.pybamboo.delete_dataset(dataset_id1)
         self.pybamboo.delete_dataset(merge_id)
+
+    def test_info(self):
+        self._store_csv()
+        response = self.pybamboo.info(self.dataset_id)
+        self.assertTrue(isinstance(response, dict))
+        self.assertTrue('id' in response)
+        self.assertTrue('schema' in response)

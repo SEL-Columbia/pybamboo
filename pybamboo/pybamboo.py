@@ -45,6 +45,11 @@ class PyBamboo(object):
                 'dataset': dataset_id}
         return u'%(bamboo_url)s/calculations/%(dataset)s' % data
 
+    def info(self, dataset_id):
+        req = requests.get(self.get_dataset_info_url(dataset_id))
+        self._check_response(req)
+        return self._safe_json_loads(req)
+
     def count_submissions(self, dataset_id, field, method='count'):
         """
         Number of submissions for a given field.
