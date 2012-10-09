@@ -122,6 +122,13 @@ class PyBamboo(object):
         self._check_response(req)
         return json.loads(req.text)
 
+    def merge(self, dataset_ids):
+        ids_str = json.dumps(dataset_ids)
+        req = requests.post('%s/datasets/merge?datasets=%s' % (
+            self.url, ids_str))
+        self._check_response(req)
+        return self._safe_json_loads(req)
+
     def _check_response(self, req, ok_status_codes=None):
         if ok_status_codes is None:
             ok_status_codes = self.OK_STATUS_CODES

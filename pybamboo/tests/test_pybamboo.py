@@ -141,3 +141,19 @@ class TestPyBamboo(TestBase):
             self._store_csv()
         except ErrorParsingBambooData:
             pass
+
+    def test_merge(self):
+        self._store_csv()
+        dataset_id1 = self.dataset_id
+        self._store_csv()
+        dataset_id2 = self.dataset_id
+        response = self.pybamboo.merge([dataset_id1, dataset_id2])
+        self.assertTrue(isinstance(response, dict))
+        self.assertTrue('id' in response)
+        merge_id = response['id']
+        d1_response = self.pybamboo.query(dataset_id1)
+        response = self.pybamboo.query(merge_id)
+        self.assertEqual(len(d1_response) * 2, len(response))
+        # cleanup, tearDown will cleanup dataset_id2
+        self.pybamboo.delete_dataset(dataset_id1)
+        self.pybamboo.delete_dataset(merge_id)
