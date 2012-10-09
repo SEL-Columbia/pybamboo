@@ -68,6 +68,16 @@ class TestPyBamboo(TestBase):
         self.assertTrue(name in response['success'])
         self.assertTrue(self.dataset_id in response['success'])
 
+    def test_store_calculation_with_group(self):
+        self._store_csv()
+        name = 'amount_gps_alt'
+        formula = 'amount+gps_alt'
+        response = self.pybamboo.store_calculation(
+            self.dataset_id, name, formula, 'food_type')
+        self.assertTrue('success' in response)
+        self.assertTrue(name in response['success'])
+        self.assertTrue(self.dataset_id in response['success'])
+
     def test_count_submissions(self):
         self._store_csv()
         count = self.pybamboo.count_submissions(self.dataset_id, 'amount')

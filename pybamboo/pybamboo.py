@@ -104,11 +104,14 @@ class PyBamboo(object):
         else:
             return response
 
-    def store_calculation(self, dataset_id, formula_name, formula):
+    def store_calculation(self, dataset_id, formula_name, formula, group=None):
         url = self.get_dataset_calculations_url(dataset_id)
 
         data = {'name': formula_name,
                 'formula': formula}
+
+        if group:
+            data.update({'group': group})
 
         req = requests.post(url, data=data)
 
