@@ -64,10 +64,9 @@ class TestPyBamboo(TestBase):
         formula = 'amount+gps_alt'
         response = self.pybamboo.store_calculation(
             self.dataset_id, name, formula)
-        self.assertTrue('name' in response)
-        self.assertEqual(response['name'], name)
-        self.assertTrue('formula' in response)
-        self.assertEqual(response['formula'], formula)
+        self.assertTrue('success' in response)
+        self.assertTrue(name in response['success'])
+        self.assertTrue(self.dataset_id in response['success'])
 
     def test_count_submissions(self):
         self._store_csv()

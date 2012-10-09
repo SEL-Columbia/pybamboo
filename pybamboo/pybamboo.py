@@ -10,11 +10,9 @@ class ErrorParsingBambooData(ValueError):
     pass
 
 
-DEFAULT_BAMBOO_URL = 'http://bamboo.io'
-
-
 class PyBamboo(object):
 
+    DEFAULT_BAMBOO_URL = 'http://bamboo.io'
     OK_STATUS_CODES = (200, 201, 202)
 
     def __init__(self, bamboo_url=DEFAULT_BAMBOO_URL):
