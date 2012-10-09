@@ -120,12 +120,12 @@ class PyBamboo(object):
     def delete_dataset(self, dataset_id):
         req = requests.delete(self.get_dataset_url(dataset_id))
         self._check_response(req)
-        return json.loads(req.text)
+        return self._safe_json_loads(req)
 
     def merge(self, dataset_ids):
         ids_str = json.dumps(dataset_ids)
-        req = requests.post('%s/datasets/merge?datasets=%s' % (
-            self.url, ids_str))
+        req = requests.post('%s/datasets/merge' % self.url,
+                            data={'datasets': ids_str})
         self._check_response(req)
         return self._safe_json_loads(req)
 
