@@ -33,7 +33,8 @@ class Connection(object):
             'PUT': requests.put,
             'DELETE': requests.delete,
         }
-        response = http_function[http_method](self.url + url, files=files)
+        response = http_function[http_method](
+            self.url + url, data=data, files=files)
         self._check_response(response)
         return self._safe_json_loads(response)
 
