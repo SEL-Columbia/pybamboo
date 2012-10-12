@@ -1,7 +1,7 @@
 from functools import wraps
 
 from pybamboo.exceptions import BambooDatasetDoesNotExist,\
-    ErrorCreatingBambooDataset
+    ErrorCreatingBambooDataset, InvalidBambooCalculation
 from pybamboo.connection import Connection
 
 
@@ -66,7 +66,14 @@ class Dataset(object):
         """
         Adds a calculation to this dataset in bamboo.
         """
-        pass
+        try:
+            name, formula = formula.split('=', 1)
+        except ValueError:
+            raise InvalidBambooCalculation
+        data = {'name': name, 'formula': formula}
+        response = self._connection.make_api_request(
+            'POST', '/calculations/%s' % self._id, data=data)
+        return 'error' not in response.keys()
 
     @require_valid
     def remove_calculation(self, name):

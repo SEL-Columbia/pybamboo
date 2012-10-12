@@ -12,3 +12,7 @@ class ErrorCreatingBambooDataset(Exception):
 
 class BambooDatasetDoesNotExist(Exception):
     pass
+
+
+class InvalidBambooCalculation(Exception):
+    pass

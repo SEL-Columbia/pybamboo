@@ -23,7 +23,7 @@ class TestConnection(TestBase):
             test_response.status_code = status_code
             try:
                 self.connection._check_response(test_response)
-            except ErrorRetrievingBambooData: # pragma: no cover
+            except ErrorRetrievingBambooData:  # pragma: no cover
                 self.fail('Raised error on OK status code.')
         test_response.status_code = 404
         with self.assertRaises(ErrorRetrievingBambooData):
@@ -36,7 +36,7 @@ class TestConnection(TestBase):
         test_response.text = valid_json
         try:
             self.connection._safe_json_loads(test_response)
-        except ErrorParsingBambooData: # pragma: no cover
+        except ErrorParsingBambooData:  # pragma: no cover
             self.fail('Raised error on valid JSON.')
         test_response.text = invalid_json
         with self.assertRaises(ErrorParsingBambooData):
