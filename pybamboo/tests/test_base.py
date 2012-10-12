@@ -1,7 +1,9 @@
 import os
 import unittest
 
-from pybamboo.pybamboo import PyBamboo
+import requests
+
+from pybamboo.connection import Connection, DEFAULT_BAMBOO_URL
 
 
 class TestBase(unittest.TestCase):
@@ -11,12 +13,13 @@ class TestBase(unittest.TestCase):
     NUM_ROWS = 19
 
     def setUp(self):
-        self.pybamboo = PyBamboo()
-        self.dataset_id = None
+        self.connection = Connection()
+        self.dataset = None
 
     def tearDown(self):
-        if self.dataset_id:
+        if self.dataset:
             self._delete_dataset()
 
     def _delete_dataset(self):
-        self.pybamboo.delete_dataset(self.dataset_id)
+        response = requests.delete(
+            DEFAULT_BAMBOO_URL + '/datasets/%s' % self.dataset.id)

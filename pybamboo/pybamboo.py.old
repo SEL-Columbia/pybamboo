@@ -1,13 +1,7 @@
 import simplejson as json
 import requests
 
-
-class ErrorRetrievingBambooData(IOError):
-    pass
-
-
-class ErrorParsingBambooData(ValueError):
-    pass
+from exceptions import ErrorRetrievingBambooData, ErrorParsingBambooData
 
 
 class PyBamboo(object):
@@ -126,9 +120,9 @@ class PyBamboo(object):
         return self._safe_json_loads(req)
 
     def delete_dataset(self, dataset_id):
-        req = requests.delete(self.get_dataset_url(dataset_id))
-        self._check_response(req)
-        return self._safe_json_loads(req)
+        request = requests.delete(self.get_dataset_url(dataset_id))
+        self._check_response(request)
+        return self._safe_json_loads(request)
 
     def merge(self, dataset_ids):
         ids_str = json.dumps(dataset_ids)
