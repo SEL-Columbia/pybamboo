@@ -47,5 +47,6 @@ Bamboo is an open source project. The project features, in chronological order,
 the combined efforts of
 
 * Peter Lubell-Doughtie
+* Mark Johnston
 
 and other developers.
