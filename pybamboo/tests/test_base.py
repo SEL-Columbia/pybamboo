@@ -11,9 +11,11 @@ class TestBase(unittest.TestCase):
     CSV_FILE = os.getcwd() + '/tests/fixtures/good_eats.csv'
     NUM_COLS = 15
     NUM_ROWS = 19
+    TEST_BAMBOO_URL = DEFAULT_BAMBOO_URL
 
     def setUp(self):
-        self.connection = Connection()
+        self.bamboo_url = self.TEST_BAMBOO_URL
+        self.connection = Connection(self.bamboo_url)
         self.dataset = None
 
     def tearDown(self):
@@ -22,4 +24,4 @@ class TestBase(unittest.TestCase):
 
     def _delete_dataset(self):
         response = requests.delete(
-            DEFAULT_BAMBOO_URL + '/datasets/%s' % self.dataset.id)
+            self.bamboo_url + '/datasets/%s' % self.dataset.id)

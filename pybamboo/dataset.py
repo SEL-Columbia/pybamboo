@@ -1,8 +1,10 @@
 from functools import wraps
+import math
+import time
 
-from pybamboo.exceptions import BambooDatasetDoesNotExist,\
-    ErrorCreatingBambooDataset, InvalidBambooCalculation
 from pybamboo.connection import Connection
+from pybamboo.decorators import require_valid, retry
+from pybamboo.exceptions import PyBambooException
 
 
 class Dataset(object):
@@ -11,6 +13,7 @@ class Dataset(object):
     """
 
     _id = None
+    NUM_RETRIES = 3.0
 
     def __init__(self, dataset_id=None, url=None, path=None, connection=None):
         """
@@ -23,11 +26,12 @@ class Dataset(object):
         supplied one will be created automatically with the default options.
         """
         if dataset_id is None and url is None and path is None:
-            raise ErrorCreatingBambooDataset(
+            raise PyBambooException(
                 'Must supply dataset_id, url, or file path.')
 
         if connection is None:
             self._connection = Connection()
+        self._connection = connection
 
         if dataset_id is not None:
             pass
@@ -40,47 +44,52 @@ class Dataset(object):
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
 
-    def require_valid(func):
-        """
-        This decorator checks whether or not this object corresponds to
-        a valid dataset in bamboo.  If not, it raises an exception.
-        """
-        def wrapped(self, *args, **kwargs):
-            if self._id is None:
-                raise BambooDatasetDoesNotExist()
-            return func(self, *args, **kwargs)
-        return wrapped
-
-    @require_valid
-    def delete(self):
+    def delete(self, num_retries=NUM_RETRIES):
         """
         Deletes the dataset from bamboo.
         """
-        response = self._connection.make_api_request(
-            'DELETE', '/datasets/%s' % self._id)
-        if 'success' in response.keys():
-            self._id = None
+        @require_valid
+        @retry(num_retries)
+        def _delete(self):
+            response = self._connection.make_api_request(
+                'DELETE', '/datasets/%s' % self._id)
+            success = 'success' in response.keys()
+            if success:
+                self._id = None
+            return success
+        return _delete(self)
 
-    @require_valid
-    def add_calculation(self, formula):
+    def add_calculation(self, formula, num_retries=NUM_RETRIES):
         """
         Adds a calculation to this dataset in bamboo.
         """
-        try:
-            name, formula = formula.split('=', 1)
-        except ValueError:
-            raise InvalidBambooCalculation
-        data = {'name': name, 'formula': formula}
-        response = self._connection.make_api_request(
-            'POST', '/calculations/%s' % self._id, data=data)
-        return 'error' not in response.keys()
+        @require_valid
+        @retry(num_retries)
+        def _add_calculation(self, formula):
+            try:
+                name, formula = [token.strip()
+                                 for token in formula.split('=', 1)]
+            except ValueError:
+                raise PyBambooException(
+                    'Calculations must be of the form: name = formula.')
+            data = {'name': name, 'formula': formula}
+            response = self._connection.make_api_request(
+                'POST', '/datasets/%s/calculations' % self._id, data=data)
+            return 'error' not in response.keys()
+        return _add_calculation(self, formula)
 
-    @require_valid
-    def remove_calculation(self, name):
+    def remove_calculation(self, name, num_retries=NUM_RETRIES):
         """
         Removes a calculation from this dataset in bamboo.
         """
-        pass
+        @require_valid
+        @retry(num_retries)
+        def _remove_calculation(self, name):
+            params = {'name': name}
+            response = self._connection.make_api_request(
+                'DELETE', '/calculations/%s' % self._id, params=params)
+            return 'success' in response.keys()
+        return _remove_calculation(self, name)
 
     @require_valid
     def get_calculations(self):
