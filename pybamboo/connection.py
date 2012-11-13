@@ -32,10 +32,8 @@ class Connection(object):
             'PUT': requests.put,
             'DELETE': requests.delete,
         }
-        print 'REQUEST: %s %s %s' % (http_method, url, data)
         response = http_function[http_method](
             self.url + url, data=data, files=files, params=params)
-        print 'RESPONSE: %s %s' % (response.status_code, response.text)
         #self._check_response(response)
         return safe_json_loads(response.text, ErrorParsingBambooData)
 
