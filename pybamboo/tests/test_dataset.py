@@ -12,8 +12,8 @@ class TestDataset(TestBase):
     def _create_dataset_from_file(self):
         self.dataset = Dataset(path=self.CSV_FILE, connection=self.connection)
 
-    def test_create_dataset_defualt_connection(self):
-        pass
+    def test_create_dataset_default_connection(self):
+        self.dataset = Dataset(path=self.CSV_FILE)
 
     def test_create_dataset_no_info(self):
         with self.assertRaises(PyBambooException):

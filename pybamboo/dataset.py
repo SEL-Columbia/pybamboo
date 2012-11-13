@@ -32,7 +32,8 @@ class Dataset(object):
 
         if connection is None:
             self._connection = Connection()
-        self._connection = connection
+        else:
+            self._connection = connection
 
         if dataset_id is not None:
             pass
