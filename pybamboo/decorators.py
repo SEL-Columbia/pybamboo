@@ -48,8 +48,8 @@ def retry(tries, delay=RETRY_DELAY, backoff=RETRY_BACKOFF):
             mtries, mdelay = tries, delay
             result = func(self, *args, **kwargs)
             while mtries > 0:
-                if result is True:
-                    return True
+                if result:
+                    return result
                 mtries -= 1
                 time.sleep(mdelay)
                 mdelay *= backoff

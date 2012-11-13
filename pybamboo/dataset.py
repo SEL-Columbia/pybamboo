@@ -87,39 +87,21 @@ class Dataset(object):
         def _remove_calculation(self, name):
             params = {'name': name}
             response = self._connection.make_api_request(
-                'DELETE', '/calculations/%s' % self._id, params=params)
+                'DELETE', '/datasets/%s/calculations' % self._id, params=params)
             return 'success' in response.keys()
         return _remove_calculation(self, name)
 
-    @require_valid
-    def get_calculations(self):
+    def get_calculations(self, num_retries=NUM_RETRIES):
         """
-        Returns a dict of the calculations in {name: formula} format.
+        Returns a list of the calculations with their name, formula and group.
         """
-        pass
-
-    @require_valid
-    def add_aggregation(self, formula, groups=None):
-        """
-        Adds an aggregation from this dataset in bamboo the results for which
-        are in a dataset which is linked to this one.
-        """
-        pass
-
-    @require_valid
-    def remove_aggregation(self, formula, groups=None):
-        """
-        Removes this aggregation from the corresponding dataset.
-        (Not yet implemented)
-        """
-        pass
-
-    @require_valid
-    def get_aggregations(self):
-        """
-        Returns a {groups: id} mapping for aggregations of this dataset.
-        """
-        pass
+        @require_valid
+        @retry(num_retries)
+        def _get_calculations(self):
+            calcs = {}
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s/calculations' % self._id)
+        return _get_calculations(self)
 
     @require_valid
     def get_summary(self, select='all', groups=None, query=None):

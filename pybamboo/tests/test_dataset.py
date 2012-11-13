@@ -49,3 +49,15 @@ class TestDataset(TestBase):
     def test_remove_calculation_fail(self):
         result = self.dataset.remove_calculation('bad')
         self.assertFalse(result)
+
+    def test_get_calculations(self):
+        calc_keys = ['status', 'formula', 'group', 'name']
+        result = self.dataset.add_calculation('double_amount = amount * 2')
+        self.assertEqual(result, True)
+        result = self.dataset.get_calculations()
+        self.assertTrue(isinstance(result, list))
+        for calc in result:
+            self.assertTrue(isinstance(calc, dict))
+            keys = calc.keys()
+            for key in calc_keys:
+                self.assertTrue(key in keys)
