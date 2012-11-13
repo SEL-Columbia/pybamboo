@@ -1,8 +1,7 @@
-import simplejson as json
-
 import requests
 
 from pybamboo.exceptions import BambooError, ErrorParsingBambooData
+from pybamboo.utils import safe_json_loads
 
 
 DEFAULT_BAMBOO_URL = 'http://bamboo.io'
@@ -33,18 +32,14 @@ class Connection(object):
             'PUT': requests.put,
             'DELETE': requests.delete,
         }
+        print 'REQUEST: %s %s %s' % (http_method, url, data)
         response = http_function[http_method](
             self.url + url, data=data, files=files, params=params)
+        print 'RESPONSE: %s %s' % (response.status_code, response.text)
         #self._check_response(response)
-        return self._safe_json_loads(response)
+        return safe_json_loads(response.text, ErrorParsingBambooData)
 
     def _check_response(self, response):
         if not response.status_code in OK_STATUS_CODES:
             raise BambooError(u'%d: %s' % (response.status_code,
                                            response.text))
-
-    def _safe_json_loads(self, response):
-        try:
-            return json.loads(response.text)
-        except json.JSONDecodeError:
-            raise ErrorParsingBambooData

@@ -7,9 +7,6 @@ from pybamboo.tests.test_base import TestBase
 
 class TestConnection(TestBase):
 
-    class MockResponse(object):
-        pass
-
     def test_url(self):
         # default self.connection is setup in TestBase.setUp()
         self.assertEqual(self.connection.url, self.TEST_BAMBOO_URL)
@@ -30,16 +27,3 @@ class TestConnection(TestBase):
         test_response.text = 'FAIL'
         with self.assertRaises(BambooError):
             self.connection._check_response(test_response)
-
-    def test_safe_json_loads(self):
-        valid_json = '{"key": "value"}'
-        invalid_json = '{"key": "value",}'
-        test_response = self.MockResponse()
-        test_response.text = valid_json
-        try:
-            self.connection._safe_json_loads(test_response)
-        except ErrorParsingBambooData:  # pragma: no cover
-            self.fail('Raised error on valid JSON.')
-        test_response.text = invalid_json
-        with self.assertRaises(ErrorParsingBambooData):
-            self.connection._safe_json_loads(test_response)

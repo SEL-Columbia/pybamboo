@@ -5,6 +5,7 @@ import time
 from pybamboo.connection import Connection
 from pybamboo.decorators import require_valid, retry
 from pybamboo.exceptions import PyBambooException
+from pybamboo.utils import safe_json_dumps
 
 
 class Dataset(object):
@@ -63,6 +64,7 @@ class Dataset(object):
         """
         Adds a calculation to this dataset in bamboo.
         """
+        # TODO: make this work for aggregations
         @require_valid
         @retry(num_retries)
         def _add_calculation(self, formula):
@@ -87,7 +89,8 @@ class Dataset(object):
         def _remove_calculation(self, name):
             params = {'name': name}
             response = self._connection.make_api_request(
-                'DELETE', '/datasets/%s/calculations' % self._id, params=params)
+                'DELETE', '/datasets/%s/calculations' % self._id,
+                params=params)
             return 'success' in response.keys()
         return _remove_calculation(self, name)
 
@@ -103,27 +106,50 @@ class Dataset(object):
                 'GET', '/datasets/%s/calculations' % self._id)
         return _get_calculations(self)
 
-    @require_valid
-    def get_summary(self, select='all', groups=None, query=None):
+    def get_summary(self, select='all', groups=None, query=None,
+                    num_retries=NUM_RETRIES):
         """
         Returns the summary information for this dataset.
         """
-        pass
+        @require_valid
+        @retry(num_retries)
+        def _get_summary(self, select, groups, query):
+            params = {'select': select}
+            if groups:
+                params['group'] = groups
+            if query:
+                params['query'] = query
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s/summary' % self._id, params=params)
+        return _get_summary(self, select, groups, query)
 
-    @require_valid
-    def get_info(self):
+    def get_info(self, num_retries=NUM_RETRIES):
         """
         Returns the general information for this dataset.
         """
-        pass
+        @require_valid
+        @retry(num_retries)
+        def _get_info(self):
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s/info' % self._id)
+        return _get_info(self)
 
-    @require_valid
-    def get_data(self, select=None, query=None):
+    def get_data(self, select=None, query=None, num_retries=NUM_RETRIES):
         """
         Returns the rows in this dataset filtered by the given
         select and query.
         """
-        pass
+        @require_valid
+        @retry(num_retries)
+        def _get_data(self, select, query):
+            params = {}
+            if select:
+                params['select'] = select
+            if query:
+                params['query'] = query
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s' % self._id, params=params)
+        return _get_data(self, select, query)
 
     @require_valid
     def update_data(self, rows):
@@ -131,7 +157,27 @@ class Dataset(object):
         Updates this dataset with the rows given in {column: value} format.
         Any unspecified columns will result in n/a values.
         """
-        pass
+        if not isinstance(rows, list):
+            raise PyBambooException(
+                'rows must be a list of dictionaries')
+        if len(rows) == 0:
+            raise PyBambooException(
+                'rows must contain at least one row dictionary')
+        for row in rows:
+            if not isinstance(row, dict):
+                raise PyBambooException(
+                    'rows must be a list of dictionaries')
+        data = safe_json_dumps(rows, PyBambooException(
+            'rows is not JSON-serializable'))
+        response = self._connection.make_api_request(
+            'PUT', '/datasets/%s' % self._id, data=data)
+        return 'id' in response.keys()
+
+    # TODO: add the following functionality
+    #   * make calculation calls for aggregations
+    #   * get aggregated datasets
+    #   * merge datasets
+    #   * join datasets
 
     @property
     def id(self):
