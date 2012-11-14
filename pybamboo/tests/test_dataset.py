@@ -34,19 +34,42 @@ class TestDataset(TestBase):
 
     def test_add_calculation(self):
         result = self.dataset.add_calculation('double_amount = amount * 2')
-        self.assertEqual(result, True)
+        self.assertTrue(result)
 
     def test_add_invalid_calculation_a_priori(self):
-        with self.assertRaises(PyBambooException):
-            result = self.dataset.add_calculation('just formula')
+        bad_calcs = [
+            'just formula',
+            3,
+        ]
+        for calc in bad_calcs:
+            with self.assertRaises(PyBambooException):
+                result = self.dataset.add_calculation(calc)
 
     def test_add_invalid_calculation_a_posteriori(self):
         result = self.dataset.add_calculation('double_amount = BAD')
         self.assertEqual(result, False)
 
+    def test_add_aggregation_as_calculation(self):
+        for aggregation in Dataset.AGGREGATIONS:
+            with self.assertRaises(PyBambooException):
+                self.dataset.add_calculation('f = %s(foo)' % aggregation)
+
+    def test_add_aggregation(self):
+        result = self.dataset.add_aggregation('sum_amount = sum(amount)')
+        self.assertTrue(result)
+
+    def test_add_calculation_as_aggregation(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.add_aggregation('double_amount = amount * 2')
+
     def test_remove_calculation(self):
         self.dataset.add_calculation('double_amount = amount * 2')
         result = self.dataset.remove_calculation('double_amount')
+        self.assertTrue(result)
+
+    def test_remove_aggregation(self):
+        self.dataset.add_aggregation('sum_amount = sum(amount)')
+        result = self.dataset.remove_aggregation('sum_amount')
         self.assertTrue(result)
 
     def test_remove_calculation_fail(self):
@@ -64,6 +87,26 @@ class TestDataset(TestBase):
             keys = calc.keys()
             for key in calc_keys:
                 self.assertTrue(key in keys)
+        self.assertEqual(result[0]['status'], 'pending')
+        self.wait()
+        result = self.dataset.get_calculations()
+        self.assertEqual(result[0]['status'], 'ready')
+
+    def test_get_aggregate_datasets(self):
+        self.dataset.add_aggregation('sum_amount = sum(amount)')
+        result = self.dataset.get_aggregate_datasets()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(len(result), 0)
+        self.wait()
+        result = self.dataset.get_aggregate_datasets()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(len(result), 1)
+        self.assertTrue(isinstance(result[''], Dataset))
+
+    def test_get_aggregate_datasets_no_aggregations(self):
+        result = self.dataset.get_aggregate_datasets()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(len(result), 0)
 
     def test_get_summary(self):
         self.wait()  # TODO: remove this (after bamboo fix)
