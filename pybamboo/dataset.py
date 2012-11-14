@@ -166,8 +166,8 @@ class Dataset(object):
         """
         response = self._connection.make_api_request(
             'GET', '/datasets/%s/related' % self._id)
-        return dict([(group, Dataset(dataset_id)) for group, dataset_id in
-                     response.iteritems()])
+        return dict([(group, Dataset(dataset_id, connection=self._connection))
+                     for group, dataset_id in response.iteritems()])
 
     def get_summary(self, select='all', groups=None, query=None,
                     num_retries=NUM_RETRIES):
@@ -235,11 +235,62 @@ class Dataset(object):
         response = self._connection.make_api_request(
             'PUT', '/datasets/%s' % self._id, data=data)
         return 'id' in response.keys()
-    #   * get aggregated datasets
 
-    # TODO: add the following functionality
-    #   * merge datasets
-    #   * join datasets
+    @classmethod
+    def merge(cls, datasets, connection=None):
+        """
+        Create a new dataset that is a row-wise merge of those in *datasets*.
+        Returns the new merged dataset.
+        """
+        if connection is None:
+            connection = Connection()
+
+        # TODO: allow list of dataset_ids?
+        checked_datasets = []
+        for dataset in datasets:
+            if not isinstance(dataset, Dataset):
+                raise PyBambooException(
+                    'Datasets need to be instances of Dataset.')
+            checked_datasets.append(dataset.id)
+
+        data = {'datasets': safe_json_dumps(
+            checked_datasets,
+            PyBambooException('datasets is not JSON-serializable.'))}
+        result = connection.make_api_request(
+            'POST', '/datasets/merge', data=data)
+
+        if 'id' in result.keys():
+            return Dataset(result['id'], connection=connection)
+        return False
+
+    @classmethod
+    def join(cls, left_dataset, right_dataset, on, connection=None):
+        """
+        Create a new dataset that is the result of a join, where this
+        left_dataset is the lefthand side and *right_dataset* is the
+        righthand side and *on* is the column on which to join.
+        The column that is joined on must be unique in the righthand side
+        and must exist in both datasets.
+        """
+        if connection is None:
+            connection = Connection()
+
+        if not isinstance(left_dataset, Dataset) or\
+                not isinstance(right_dataset, Dataset):
+            raise PyBambooException(
+                'datasets must be an instances of Dataset.')
+
+        data = {
+            'dataset_id': left_dataset.id,
+            'other_dataset_id': right_dataset.id,
+            'on': on,
+        }
+        result = connection.make_api_request(
+            'POST', '/datasets/join', data=data)
+
+        if 'id' in result.keys():
+            return Dataset(result['id'], connection=connection)
+        return False
 
     @property
     def id(self):

@@ -13,9 +13,10 @@ class TestBase(unittest.TestCase):
         pass
 
     CSV_FILE = os.getcwd() + '/tests/fixtures/good_eats.csv'
+    AUX_CSV_FILE = os.getcwd() + '/tests/fixtures/good_eats_aux.csv'
     NUM_COLS = 15
     NUM_ROWS = 19
-    TEST_BAMBOO_URL = DEFAULT_BAMBOO_URL
+    TEST_BAMBOO_URL = 'http://localhost:8080'
 
     def setUp(self):
         self.bamboo_url = self.TEST_BAMBOO_URL

@@ -12,6 +12,10 @@ class TestDataset(TestBase):
     def _create_dataset_from_file(self):
         self.dataset = Dataset(path=self.CSV_FILE, connection=self.connection)
 
+    def _create_aux_dataset_from_file(self):
+        self.aux_dataset = Dataset(path=self.AUX_CSV_FILE,
+                                   connection=self.connection)
+
     def test_create_dataset_default_connection(self):
         self.dataset = Dataset(path=self.CSV_FILE)
 
@@ -202,3 +206,44 @@ class TestDataset(TestBase):
         for rows in bad_rows:
             with self.assertRaises(PyBambooException):
                 result = self.dataset.update_data(rows)
+
+    def test_merge(self):
+        # already have one dataset in self.dataset
+        dataset = Dataset(path=self.CSV_FILE,
+                          connection=self.connection)
+        result = Dataset.merge([self.dataset, dataset],
+                               connection=self.connection)
+        self.assertTrue(isinstance(result, Dataset))
+
+    def test_merge_default_connection(self):
+        self.dataset = Dataset(path=self.CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE)
+        result = Dataset.merge([self.dataset, dataset],
+                               connection=self.connection)
+        self.assertTrue(isinstance(result, Dataset))
+
+    def test_merge_bad_datasets(self):
+        self.dataset = {}
+        dataset = []
+        with self.assertRaises(PyBambooException):
+            result = Dataset.merge([self.dataset, dataset],
+                                   connection=self.connection)
+
+    def test_join(self):
+        self._create_aux_dataset_from_file()
+        self.wait()
+        result = Dataset.join(self.dataset, self.aux_dataset,
+                              'food_type', connection=self.connection)
+        self.assertTrue(isinstance(result, Dataset))
+
+    def test_join_bad_other_dataset(self):
+        with self.assertRaises(PyBambooException):
+            result = Dataset.join(self.dataset, Exception(), 'food_type',
+                                  connection=self.connection)
+
+    def test_join_bad_on(self):
+        self._create_aux_dataset_from_file()
+        self.wait()
+        result = Dataset.join(self.dataset, self.aux_dataset,
+                              'BAD', connection=self.connection)
+        self.assertFalse(result)
