@@ -27,6 +27,9 @@ class TestDataset(TestBase):
         # created in TestDataset.setUp()
         self.assertTrue(self.dataset.id is not None)
 
+    def test_create_dataset_from_url(self):
+        pass
+
     def test_delete_dataset(self):
         self.dataset.delete()
         self.assertTrue(self.dataset._id is None)
@@ -113,7 +116,7 @@ class TestDataset(TestBase):
         self.assertEqual(len(result), 0)
 
     def test_get_summary(self):
-        self.wait()  # TODO: remove this (after bamboo fix)
+        self.wait()  # TODO: remove (bamboo issue #276)
         result = self.dataset.get_summary()
         self.assertTrue(isinstance(result, dict))
         # TODO: assert more stuff?
@@ -148,7 +151,7 @@ class TestDataset(TestBase):
             'olap_type',
             'label',
         ]
-        self.wait()  # TODO: remove this (after bamboo fix)
+        self.wait()  # have to wait, bamboo issue #284
         result = self.dataset.get_info()
         self.assertTrue(isinstance(result, dict))
         for key in info_keys:
@@ -168,16 +171,41 @@ class TestDataset(TestBase):
         self.assertEqual(len(result), 19)
 
     def test_get_data_with_select(self):
-        pass
+        result = self.dataset.get_data(select=['food_type', 'amount'])
+        self.assertEqual(len(result), 19)
+        for row in result:
+            self.assertEqual(len(row), 2)
+            cols = row.keys()
+            self.assertTrue('food_type' in cols)
+            self.assertTrue('amount' in cols)
 
     def test_get_data_with_query(self):
-        pass
+        self.wait()  # TODO: remove (bamboo issue #285)
+        result = self.dataset.get_data(query={'food_type': 'lunch'})
+        self.assertEqual(len(result), 7)
 
     def test_get_data_with_select_and_query(self):
-        pass
+        self.wait()  # TODO: remove (bamboo issue #285)
+        result = self.dataset.get_data(select=['food_type', 'amount'], query={'food_type': 'lunch'})
+        self.assertEqual(len(result), 7)
+        for row in result:
+            self.assertEqual(len(row), 2)
+            cols = row.keys()
+            self.assertTrue('food_type' in cols)
+            self.assertTrue('amount' in cols)
 
-    def test_get_no_data(self):
-        pass
+    def test_get_data_invalid_select(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.get_data(select='BAD')
+
+    def test_get_data_invalid_query(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.get_data(query='BAD')
+
+    def test_get_data_bad_query(self):
+        self.wait()  # TODO: remove (bamboo issue #285)
+        result = self.dataset.get_data(query={'BAD': 'BAD'})
+        self.assertFalse(result)
 
     def test_update_data(self):
         row = {
@@ -186,7 +214,7 @@ class TestDataset(TestBase):
             'risk_factor': 'high_risk',
             'rating': 'delectible',
         }
-        self.wait()  # TODO: remove this (after bamboo fix)
+        self.wait()  # TODO: remove (bamboo issue #277)
         result = self.dataset.update_data([row])
         self.wait()
         result = self.dataset.get_data()
@@ -218,8 +246,7 @@ class TestDataset(TestBase):
     def test_merge_default_connection(self):
         self.dataset = Dataset(path=self.CSV_FILE)
         dataset = Dataset(path=self.CSV_FILE)
-        result = Dataset.merge([self.dataset, dataset],
-                               connection=self.connection)
+        result = Dataset.merge([self.dataset, dataset])
         self.assertTrue(isinstance(result, Dataset))
 
     def test_merge_bad_datasets(self):
@@ -229,11 +256,24 @@ class TestDataset(TestBase):
             result = Dataset.merge([self.dataset, dataset],
                                    connection=self.connection)
 
+    def test_merge_fail(self):
+        other_dataset = Dataset('12345', connection=self.connection)
+        # TODO: uncomment these lines (bamboo issue #283)
+        #result = Dataset.merge([self.dataset, other_dataset], connection=self.connection)
+        #self.assertFalse(result)
+
     def test_join(self):
         self._create_aux_dataset_from_file()
         self.wait()
         result = Dataset.join(self.dataset, self.aux_dataset,
                               'food_type', connection=self.connection)
+        self.assertTrue(isinstance(result, Dataset))
+
+    def test_join_default_connection(self):
+        self.dataset = Dataset(path=self.CSV_FILE)
+        self.aux_dataset = Dataset(path=self.AUX_CSV_FILE)
+        self.wait()
+        result = Dataset.join(self.dataset, self.aux_dataset, 'food_type')
         self.assertTrue(isinstance(result, Dataset))
 
     def test_join_bad_other_dataset(self):

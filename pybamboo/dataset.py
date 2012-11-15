@@ -207,9 +207,13 @@ class Dataset(object):
         def _get_data(self, select, query):
             params = {}
             if select:
-                params['select'] = select
+                if not isinstance(select, list):
+                    raise PyBambooException('select must be a list of strings.')
+                params['select'] = safe_json_dumps(select, PyBambooException('select is not JSON-serializable.'))
             if query:
-                params['query'] = query
+                if not isinstance(query, dict):
+                    raise PyBambooException('query must be a dict.')
+                params['query'] = safe_json_dumps(query, PyBambooException('query is not JSON-serializable.'))
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
         return _get_data(self, select, query)
