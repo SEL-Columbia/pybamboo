@@ -17,7 +17,8 @@ class TestDataset(TestBase):
                                    connection=self.connection)
 
     def test_create_dataset_default_connection(self):
-        self.dataset = Dataset(path=self.CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE)
+        self._cleanup(dataset)
 
     def test_create_dataset_no_info(self):
         with self.assertRaises(PyBambooException):
@@ -28,7 +29,22 @@ class TestDataset(TestBase):
         self.assertTrue(self.dataset.id is not None)
 
     def test_create_dataset_from_url(self):
-        pass
+        dataset = Dataset(
+            url='http://formhub.org/mberg/forms/good_eats/data.csv')
+        self.assertTrue(self.dataset.id is not None)
+        self._cleanup(dataset)
+
+    def test_str(self):
+        self.assertEqual(str(self.dataset), self.dataset.id)
+
+    def test_columns(self):
+        self.wait()  # have to wait, bamboo issue #284
+        cols = self.dataset.columns
+        keys = self.dataset.get_info()['schema'].keys()
+        for key in keys:
+            self.assertTrue(key in cols)
+        for col in cols:
+            self.assertTrue(col in keys)
 
     def test_delete_dataset(self):
         self.dataset.delete()
@@ -64,6 +80,21 @@ class TestDataset(TestBase):
     def test_add_aggregation(self):
         result = self.dataset.add_aggregation('sum_amount = sum(amount)')
         self.assertTrue(result)
+        self.dataset.has_aggs_to_remove = True
+
+    def test_add_aggregation_with_groups(self):
+        result = self.dataset.add_aggregation(
+            'sum_amount = sum(amount)', groups=['food_type'])
+        self.assertTrue(result)
+        result = self.dataset.add_aggregation(
+            'sum_amount = sum(amount)', groups=['food_type', 'rating'])
+        self.assertTrue(result)
+        self.dataset.has_aggs_to_remove = True
+
+    def test_add_aggregation_invalid_groups(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.add_aggregation(
+                'sum_amount = sum(amount)', groups='BAD')
 
     def test_add_calculation_as_aggregation(self):
         with self.assertRaises(PyBambooException):
@@ -78,6 +109,7 @@ class TestDataset(TestBase):
         self.dataset.add_aggregation('sum_amount = sum(amount)')
         result = self.dataset.remove_aggregation('sum_amount')
         self.assertTrue(result)
+        self.dataset.has_aggs_to_remove = True
 
     def test_remove_calculation_fail(self):
         result = self.dataset.remove_calculation('bad')
@@ -108,7 +140,17 @@ class TestDataset(TestBase):
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 1)
+        self.assertTrue('' in result.keys())
         self.assertTrue(isinstance(result[''], Dataset))
+        self.dataset.add_aggregation(
+            'sum_amount = sum(amount)', groups=['food_type'])
+        self.wait()
+        result = self.dataset.get_aggregate_datasets()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(len(result), 2)
+        self.assertTrue('food_type' in result.keys())
+        self.assertTrue(isinstance(result['food_type'], Dataset))
+        self.dataset.has_aggs_to_remove = True
 
     def test_get_aggregate_datasets_no_aggregations(self):
         result = self.dataset.get_aggregate_datasets()
@@ -119,19 +161,49 @@ class TestDataset(TestBase):
         self.wait()  # TODO: remove (bamboo issue #276)
         result = self.dataset.get_summary()
         self.assertTrue(isinstance(result, dict))
-        # TODO: assert more stuff?
+        cols = self.dataset.columns
+        keys = result.keys()
+        for col in cols:
+            self.assertTrue(col in keys)
 
     def test_get_summary_with_select(self):
-        pass
+        self.wait()  # TODO: remove (bamboo issue #276)
+        result = self.dataset.get_summary(select=['food_type'])
+        self.assertEqual(len(result), 1)
+        self.assertTrue('food_type' in result.keys())
+        result = self.dataset.get_summary(select=['food_type', 'rating'])
+        self.assertEqual(len(result), 2)
+        result_keys = result.keys()
+        self.assertTrue('food_type' in result_keys)
+        self.assertTrue('food_type' in result_keys)
 
-    def test_get_summary_with_groups(self):
-        pass
+    def test_get_summary_bad_select(self):
+        with self.assertRaises(PyBambooException):
+            result = self.dataset.get_summary(select='BAD')
 
     def test_get_summary_with_query(self):
-        pass
+        self.wait()  # TODO: remove (bamboo issue #276)
+        result = self.dataset.get_summary(query={'food_type': 'lunch'})
 
-    def test_get_summary_with_select_group_and_query(self):
-        pass
+    def test_get_summary_bad_query(self):
+        with self.assertRaises(PyBambooException):
+            result = self.dataset.get_summary(query='BAD')
+
+    def test_get_summary_with_groups(self):
+        self.wait()  # TODO: remove (bamboo issue #276)
+        result = self.dataset.get_summary(groups=['food_type'])
+        self.assertEqual(len(result), 1)
+        values = self.dataset.get_summary(
+            select=['food_type'])['food_type']['summary'].keys()
+        self.assertTrue('food_type' in result.keys())
+        self.assertTrue(isinstance(result['food_type'], dict))
+        keys = result['food_type'].keys()
+        for val in values:
+            self.assertTrue(val in keys)
+
+    def test_get_summary_bad_groups(self):
+        with self.assertRaises(PyBambooException):
+            result = self.dataset.get_summary(groups='BAD')
 
     def test_get_info(self):
         info_keys = [
@@ -186,7 +258,8 @@ class TestDataset(TestBase):
 
     def test_get_data_with_select_and_query(self):
         self.wait()  # TODO: remove (bamboo issue #285)
-        result = self.dataset.get_data(select=['food_type', 'amount'], query={'food_type': 'lunch'})
+        result = self.dataset.get_data(
+            select=['food_type', 'amount'], query={'food_type': 'lunch'})
         self.assertEqual(len(result), 7)
         for row in result:
             self.assertEqual(len(row), 2)
@@ -242,24 +315,30 @@ class TestDataset(TestBase):
         result = Dataset.merge([self.dataset, dataset],
                                connection=self.connection)
         self.assertTrue(isinstance(result, Dataset))
+        self._cleanup(dataset)
+        self._cleanup(result)
 
     def test_merge_default_connection(self):
-        self.dataset = Dataset(path=self.CSV_FILE)
         dataset = Dataset(path=self.CSV_FILE)
-        result = Dataset.merge([self.dataset, dataset])
+        other_dataset = Dataset(path=self.CSV_FILE)
+        result = Dataset.merge([dataset, other_dataset])
         self.assertTrue(isinstance(result, Dataset))
+        self._cleanup(dataset)
+        self._cleanup(other_dataset)
+        self._cleanup(result)
 
     def test_merge_bad_datasets(self):
-        self.dataset = {}
-        dataset = []
+        dataset = {}
+        other_dataset = []
         with self.assertRaises(PyBambooException):
-            result = Dataset.merge([self.dataset, dataset],
+            result = Dataset.merge([dataset, other_dataset],
                                    connection=self.connection)
 
     def test_merge_fail(self):
         other_dataset = Dataset('12345', connection=self.connection)
         # TODO: uncomment these lines (bamboo issue #283)
-        #result = Dataset.merge([self.dataset, other_dataset], connection=self.connection)
+        #result = Dataset.merge([self.dataset, other_dataset],
+        #                       connection=self.connection)
         #self.assertFalse(result)
 
     def test_join(self):
@@ -268,13 +347,17 @@ class TestDataset(TestBase):
         result = Dataset.join(self.dataset, self.aux_dataset,
                               'food_type', connection=self.connection)
         self.assertTrue(isinstance(result, Dataset))
+        self._cleanup(result)
 
     def test_join_default_connection(self):
-        self.dataset = Dataset(path=self.CSV_FILE)
-        self.aux_dataset = Dataset(path=self.AUX_CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE)
+        aux_dataset = Dataset(path=self.AUX_CSV_FILE)
         self.wait()
-        result = Dataset.join(self.dataset, self.aux_dataset, 'food_type')
+        result = Dataset.join(dataset, aux_dataset, 'food_type')
         self.assertTrue(isinstance(result, Dataset))
+        self._cleanup(dataset)
+        self._cleanup(aux_dataset)
+        self._cleanup(result)
 
     def test_join_bad_other_dataset(self):
         with self.assertRaises(PyBambooException):

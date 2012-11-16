@@ -49,9 +49,13 @@ class Dataset(object):
             self._id = dataset_id
 
         if url is not None:
-            pass
+            # TODO: check valid url?
+            data = {'url': url}
+            self._id = self._connection.make_api_request(
+                'POST', '/datasets', data).get('id')
 
         if path is not None:
+            # TODO: check for bad file stuff?
             files = {'csv_file': ('data.csv', open(path))}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
@@ -125,6 +129,11 @@ class Dataset(object):
             name, formula = self._process_formula(formula,
                                                   is_aggregation=True)
             data = {'name': name, 'formula': formula}
+            if groups is not None:
+                if not isinstance(groups, list):
+                    raise PyBambooException(
+                        'groups must be a list of strings.')
+                data['group'] = ','.join(groups)
             response = self._connection.make_api_request(
                 'POST', '/datasets/%s/calculations' % self._id, data=data)
             return 'error' not in response.keys()
@@ -177,11 +186,29 @@ class Dataset(object):
         @require_valid
         @retry(num_retries)
         def _get_summary(self, select, groups, query):
-            params = {'select': select}
-            if groups:
-                params['group'] = groups
-            if query:
-                params['query'] = query
+            params = {}
+            # TODO: check input params
+            if select != 'all':
+                if not isinstance(select, list):
+                    raise PyBambooException(
+                        'select must be a list of strings.')
+                select = dict([(sel, 1) for sel in select])
+                params['select'] = safe_json_dumps(
+                    select,
+                    PyBambooException('select is not JSON-serializable.'))
+            else:
+                params['select'] = select
+            if groups is not None:
+                if not isinstance(groups, list):
+                    raise PyBambooException(
+                        'groups must be a list of strings.')
+                params['group'] = ','.join(groups)
+            if query is not None:
+                if not isinstance(query, dict):
+                    raise PyBambooException('query must be a dict.')
+                params['query'] = safe_json_dumps(
+                    query,
+                    PyBambooException('query is not JSON-serializable.'))
             return self._connection.make_api_request(
                 'GET', '/datasets/%s/summary' % self._id, params=params)
         return _get_summary(self, select, groups, query)
@@ -208,12 +235,18 @@ class Dataset(object):
             params = {}
             if select:
                 if not isinstance(select, list):
-                    raise PyBambooException('select must be a list of strings.')
-                params['select'] = safe_json_dumps(select, PyBambooException('select is not JSON-serializable.'))
+                    raise PyBambooException(
+                        'select must be a list of strings.')
+                select = dict([(sel, 1) for sel in select])
+                params['select'] = safe_json_dumps(
+                    select,
+                    PyBambooException('select is not JSON-serializable.'))
             if query:
                 if not isinstance(query, dict):
                     raise PyBambooException('query must be a dict.')
-                params['query'] = safe_json_dumps(query, PyBambooException('query is not JSON-serializable.'))
+                params['query'] = safe_json_dumps(
+                    query,
+                    PyBambooException('query is not JSON-serializable.'))
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
         return _get_data(self, select, query)
@@ -265,6 +298,8 @@ class Dataset(object):
 
         if 'id' in result.keys():
             return Dataset(result['id'], connection=connection)
+        # this is never reached...
+        # see TestDataset.test_merge_fail()
         return False
 
     @classmethod
@@ -303,8 +338,23 @@ class Dataset(object):
         """
         return self._id
 
+    @property
+    def columns(self):
+        """
+        A list of column headers for this dataset.
+        """
+        cols = self.get_info()['schema'].keys()
+        cols.sort()
+        return cols
+
     def __nonzero__(self):
         """
         Returns True if self._id is not None.
         """
         return bool(self._id)
+
+    def __str__(self):
+        """
+        Returns a string representation of this dataset (id).
+        """
+        return self._id
