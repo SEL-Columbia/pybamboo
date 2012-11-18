@@ -174,7 +174,7 @@ class Dataset(object):
         of the form: {group: dataset, ...}.
         """
         response = self._connection.make_api_request(
-            'GET', '/datasets/%s/related' % self._id)
+            'GET', '/datasets/%s/aggregations' % self._id)
         return dict([(group, Dataset(dataset_id, connection=self._connection))
                      for group, dataset_id in response.iteritems()])
 
