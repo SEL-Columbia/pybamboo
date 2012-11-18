@@ -106,7 +106,8 @@ class TestDataset(TestBase):
         self.assertTrue(result)
 
     def test_remove_aggregation(self):
-        self.dataset.add_aggregation('sum_amount = sum(amount)')
+        result = self.dataset.add_aggregation('sum_amount = sum(amount)')
+        self.assertTrue(result)
         result = self.dataset.remove_aggregation('sum_amount')
         self.assertTrue(result)
         self.dataset.has_aggs_to_remove = True
