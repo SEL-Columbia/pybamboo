@@ -356,6 +356,20 @@ class Dataset(object):
             return Dataset(result['id'], connection=connection)
         return False
 
+    def count(self, field, method='count'):
+        """ Number of rows/submissions for a given field.
+
+        For measure fields method is one of:
+        '25%', '50%', '75%', 'count' (default), 'max', 'mean', 'min', 'std' """
+
+        value = self.get_summary().get(field).get('summary')
+        if not isinstance(value, dict):
+            raise PyBambooException('summary not available.')
+        if method in value:
+            return float(value.get(method))
+        else:
+            return sum((int(relval) for relval in value.values()))
+
     @property
     def id(self):
         """

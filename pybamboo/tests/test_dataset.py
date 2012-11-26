@@ -46,6 +46,11 @@ class TestDataset(TestBase):
         for col in cols:
             self.assertTrue(col in keys)
 
+    def test_count(self):
+        self.wait()
+        count = self.dataset.count(field='food_type', method='count')
+        self.assertEqual(count, 19)
+
     def test_delete_dataset(self):
         self.dataset.delete()
         self.assertTrue(self.dataset._id is None)
