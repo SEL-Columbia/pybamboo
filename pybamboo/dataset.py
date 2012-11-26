@@ -179,13 +179,13 @@ class Dataset(object):
                      for group, dataset_id in response.iteritems()])
 
     def get_summary(self, select='all', groups=None, query=None,
-                    num_retries=NUM_RETRIES):
+                    num_retries=NUM_RETRIES, order_by=None, limit=0):
         """
         Returns the summary information for this dataset.
         """
         @require_valid
         @retry(num_retries)
-        def _get_summary(self, select, groups, query):
+        def _get_summary(self, select, groups, query, order_by, limit):
             params = {}
             # TODO: check input params
             if select != 'all':
@@ -209,9 +209,21 @@ class Dataset(object):
                 params['query'] = safe_json_dumps(
                     query,
                     PyBambooException('query is not JSON-serializable.'))
+            if order_by:
+                if not isinstance(order_by, basestring):
+                    raise PyBambooException('order_by must be a string.')
+                params['order_by'] = safe_json_dumps(
+                    order_by,
+                    PyBambooException('order_by is not JSON-serializable.'))
+            if limit:
+                if not isinstance(limit, int):
+                    raise PyBambooException('limit must be an int.')
+                params['limit'] = safe_json_dumps(
+                    limit,
+                    PyBambooException('limit is not JSON-serializable.'))
             return self._connection.make_api_request(
                 'GET', '/datasets/%s/summary' % self._id, params=params)
-        return _get_summary(self, select, groups, query)
+        return _get_summary(self, select, groups, query, order_by, limit)
 
     def get_info(self, num_retries=NUM_RETRIES):
         """
@@ -224,14 +236,15 @@ class Dataset(object):
                 'GET', '/datasets/%s/info' % self._id)
         return _get_info(self)
 
-    def get_data(self, select=None, query=None, num_retries=NUM_RETRIES):
+    def get_data(self, select=None, query=None, num_retries=NUM_RETRIES,
+                 order_by=None, limit=0):
         """
         Returns the rows in this dataset filtered by the given
         select and query.
         """
         @require_valid
         @retry(num_retries)
-        def _get_data(self, select, query):
+        def _get_data(self, select, query, order_by, limit):
             params = {}
             if select:
                 if not isinstance(select, list):
@@ -247,9 +260,21 @@ class Dataset(object):
                 params['query'] = safe_json_dumps(
                     query,
                     PyBambooException('query is not JSON-serializable.'))
+            if order_by:
+                if not isinstance(order_by, basestring):
+                    raise PyBambooException('order_by must be a string.')
+                params['order_by'] = safe_json_dumps(
+                    order_by,
+                    PyBambooException('order_by is not JSON-serializable.'))
+            if limit:
+                if not isinstance(limit, int):
+                    raise PyBambooException('limit must be an int.')
+                params['limit'] = safe_json_dumps(
+                    limit,
+                    PyBambooException('limit is not JSON-serializable.'))
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
-        return _get_data(self, select, query)
+        return _get_data(self, select, query, order_by, limit)
 
     @require_valid
     def update_data(self, rows):
