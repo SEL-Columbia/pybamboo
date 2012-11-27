@@ -212,9 +212,7 @@ class Dataset(object):
             if order_by:
                 if not isinstance(order_by, basestring):
                     raise PyBambooException('order_by must be a string.')
-                params['order_by'] = safe_json_dumps(
-                    order_by,
-                    PyBambooException('order_by is not JSON-serializable.'))
+                params['order_by'] = order_by
             if limit:
                 if not isinstance(limit, int):
                     raise PyBambooException('limit must be an int.')
@@ -263,9 +261,7 @@ class Dataset(object):
             if order_by:
                 if not isinstance(order_by, basestring):
                     raise PyBambooException('order_by must be a string.')
-                params['order_by'] = safe_json_dumps(
-                    order_by,
-                    PyBambooException('order_by is not JSON-serializable.'))
+                params['order_by'] = order_by
             if limit:
                 if not isinstance(limit, int):
                     raise PyBambooException('limit must be an int.')
