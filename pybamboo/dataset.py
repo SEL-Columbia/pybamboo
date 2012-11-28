@@ -241,7 +241,6 @@ class Dataset(object):
         select and query.
         """
         @require_valid
-        @retry(num_retries)
         def _get_data(self, select, query, order_by, limit):
             params = {}
             if select:
