@@ -244,11 +244,13 @@ class TestDataset(TestBase):
                 self.assertTrue(key in col_info.keys())
 
     def test_get_data(self):
+        self.wait()
         result = self.dataset.get_data()
         self.assertTrue(isinstance(result, list))
         self.assertEqual(len(result), 19)
 
     def test_get_data_with_select(self):
+        self.wait()
         result = self.dataset.get_data(select=['food_type', 'amount'])
         self.assertEqual(len(result), 19)
         for row in result:
