@@ -138,10 +138,10 @@ class TestDataset(TestBase):
         self.assertEqual(result[0]['status'], 'ready')
 
     def test_get_aggregate_datasets(self):
-        self.dataset.add_aggregation('sum_amount = sum(amount)')
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 0)
+        self.dataset.add_aggregation('sum_amount = sum(amount)')
         self.wait()
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
@@ -293,7 +293,6 @@ class TestDataset(TestBase):
             'risk_factor': 'high_risk',
             'rating': 'delectible',
         }
-        self.wait()  # TODO: remove (bamboo issue #277)
         result = self.dataset.update_data([row])
         self.wait()
         result = self.dataset.get_data()

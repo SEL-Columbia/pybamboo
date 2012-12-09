@@ -287,8 +287,10 @@ class Dataset(object):
             if not isinstance(row, dict):
                 raise PyBambooException(
                     'rows must be a list of dictionaries')
-        data = safe_json_dumps(rows, PyBambooException(
-            'rows is not JSON-serializable'))
+        data = {
+            'update': safe_json_dumps(rows, PyBambooException(
+                'rows is not JSON-serializable'))
+        }
         response = self._connection.make_api_request(
             'PUT', '/datasets/%s' % self._id, data=data)
         return 'id' in response.keys()
