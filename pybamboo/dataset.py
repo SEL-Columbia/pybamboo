@@ -1,3 +1,5 @@
+
+import StringIO
 from functools import wraps
 import math
 import time
@@ -59,7 +61,8 @@ class Dataset(object):
 
         if path is not None or content is not None:
             # TODO: check for bad file stuff?
-            data = content if content else open(path)
+            data = StringIO.StringIO(content) if content is not None \
+                                              else open(path)
             files = {'csv_file': ('data.csv', data)}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
