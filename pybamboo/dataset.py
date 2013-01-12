@@ -20,6 +20,7 @@ class Dataset(object):
         'mean',
         'min',
         'median',
+        'newest',
         'sum',
         'ratio',
         'count',
