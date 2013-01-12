@@ -1,5 +1,3 @@
-import StringIO
-
 from pybamboo.dataset import Dataset
 from pybamboo.exceptions import PyBambooException
 from pybamboo.tests.test_base import TestBase
@@ -33,14 +31,7 @@ class TestDataset(TestBase):
     def test_create_dataset_from_url(self):
         dataset = Dataset(
             url='http://formhub.org/mberg/forms/good_eats/data.csv')
-        self.assertTrue(dataset.id is not None)
-        self._cleanup(dataset)
-
-    def test_create_dataset_from_string(self):
-
-        content = StringIO.StringIO(u'name,age\nmadou,26\nawa,24')
-        dataset = Dataset(content=content)
-        self.assertTrue(dataset.id is not None)
+        self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
     def test_str(self):
@@ -141,11 +132,10 @@ class TestDataset(TestBase):
             keys = calc.keys()
             for key in calc_keys:
                 self.assertTrue(key in keys)
-        states = ('ready', 'pending')
-        self.assertIn(result[0]['state'], states)
+        self.assertEqual(result[0]['state'], 'pending')
         self.wait()
         result = self.dataset.get_calculations()
-        self.assertIn(result[0]['state'], states)
+        self.assertEqual(result[0]['state'], 'ready')
 
     def test_get_aggregate_datasets(self):
         result = self.dataset.get_aggregate_datasets()
@@ -306,6 +296,7 @@ class TestDataset(TestBase):
             'rating': 'delectible',
         }
         result = self.dataset.update_data([row])
+        self.wait()
         self.wait()
         result = self.dataset.get_data()
         self.assertTrue(isinstance(result, list))
