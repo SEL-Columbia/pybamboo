@@ -1,3 +1,5 @@
+
+import StringIO
 from functools import wraps
 import math
 import time
@@ -26,19 +28,22 @@ class Dataset(object):
         'count',
     ]
 
-    def __init__(self, dataset_id=None, url=None, path=None, connection=None):
+    def __init__(self, dataset_id=None, url=None,
+                 path=None, content=None, connection=None):
         """
         Create a new pybamboo.Dataset from one of the following:
             * dataset_id - the id of an existing bamboo.Dataset
             * url - url to a .csv file
             * path - path to a local .csv file
+            * content - a CSV string
 
         One can also pass in a pybamboo.Connection object.  If this is not
         supplied one will be created automatically with the default options.
         """
-        if dataset_id is None and url is None and path is None:
+        if dataset_id is None and url is None \
+            and path is None and content is None:
             raise PyBambooException(
-                'Must supply dataset_id, url, or file path.')
+                'Must supply dataset_id, url, content or file path.')
 
         if connection is None:
             self._connection = Connection()
@@ -55,9 +60,11 @@ class Dataset(object):
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', data).get('id')
 
-        if path is not None:
+        if path is not None or content is not None:
             # TODO: check for bad file stuff?
-            files = {'csv_file': ('data.csv', open(path))}
+            data = StringIO.StringIO(content) if content is not None \
+                                              else open(path)
+            files = {'csv_file': ('data.csv', data)}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
 
