@@ -154,10 +154,10 @@ class Dataset(object):
         @require_valid
         @retry(num_retries)
         def _remove_calculation(self, name):
-            params = {'name': name}
+            data = {'name': name}
             response = self._connection.make_api_request(
                 'DELETE', '/datasets/%s/calculations' % self._id,
-                params=params)
+                data=data)
             return 'success' in response.keys()
         return _remove_calculation(self, name)
 
