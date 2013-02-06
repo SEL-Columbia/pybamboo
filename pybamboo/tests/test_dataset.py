@@ -52,6 +52,7 @@ class TestDataset(TestBase):
         self.assertEqual(count, 19)
 
     def test_data_count(self):
+        self.wait()
         count = self.dataset.get_data(count=True)
         self.assertEqual(count, 19)
 
@@ -300,8 +301,7 @@ class TestDataset(TestBase):
             'rating': 'delectible',
         }
         result = self.dataset.update_data([row])
-        self.wait()
-        self.wait()
+        self.wait(15)
         result = self.dataset.get_data()
         self.assertTrue(isinstance(result, list))
         self.assertEqual(len(result), 20)
