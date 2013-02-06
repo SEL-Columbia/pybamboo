@@ -255,7 +255,7 @@ class Dataset(object):
         return _get_info(self, callback)
 
     def get_data(self, select=None, query=None, order_by=None, limit=0,
-                 distinct=None, format=None, callback=None,
+                 distinct=None, format=None, callback=None, count=False,
                  num_retries=NUM_RETRIES):
         """
         Returns the rows in this dataset filtered by the given
@@ -263,7 +263,7 @@ class Dataset(object):
         """
         @require_valid
         def _get_data(self, select, query, order_by, limit, distinct,
-                      format, callback):
+                      format, callback, count):
             params = {}
             if select:
                 if not isinstance(select, list):
@@ -301,10 +301,12 @@ class Dataset(object):
                 params['limit'] = safe_json_dumps(
                     limit,
                     PyBambooException('limit is not JSON-serializable.'))
+            if count:
+                params['count'] = bool(count)
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
         return _get_data(self, select, query, order_by, limit, distinct,
-                         format, callback)
+                         format, callback, count)
 
     @require_valid
     def update_data(self, rows):
