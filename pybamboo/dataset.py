@@ -185,13 +185,15 @@ class Dataset(object):
                      for group, dataset_id in response.iteritems()])
 
     def get_summary(self, select='all', groups=None, query=None,
-                    num_retries=NUM_RETRIES, order_by=None, limit=0):
+                    order_by=None, limit=0, callback=None,
+                    num_retries=NUM_RETRIES):
         """
         Returns the summary information for this dataset.
         """
         @require_valid
         @retry(num_retries)
-        def _get_summary(self, select, groups, query, order_by, limit):
+        def _get_summary(self, select, groups, query, order_by,
+                         limit, callback):
             params = {}
             # TODO: check input params
             if select != 'all':
@@ -225,29 +227,41 @@ class Dataset(object):
                 params['limit'] = safe_json_dumps(
                     limit,
                     PyBambooException('limit is not JSON-serializable.'))
+            if callback:
+                if not isinstance(callback, basestring):
+                    raise PyBambooException('callback must be a string.')
+                params['callback'] = callback
             return self._connection.make_api_request(
                 'GET', '/datasets/%s/summary' % self._id, params=params)
-        return _get_summary(self, select, groups, query, order_by, limit)
+        return _get_summary(self, select, groups, query, order_by,
+                            limit, callback)
 
-    def get_info(self, num_retries=NUM_RETRIES):
+    def get_info(self, callback=None, num_retries=NUM_RETRIES):
         """
         Returns the general information for this dataset.
         """
         @require_valid
         @retry(num_retries)
-        def _get_info(self):
+        def _get_info(self, callback):
+            params = {}
+            if callback:
+                if not isinstance(callback, basestring):
+                    raise PyBambooException('callback must be a string.')
+                params['callback'] = callback
             return self._connection.make_api_request(
-                'GET', '/datasets/%s/info' % self._id)
-        return _get_info(self)
+                'GET', '/datasets/%s/info' % self._id, params=params)
+        return _get_info(self, callback)
 
-    def get_data(self, select=None, query=None, num_retries=NUM_RETRIES,
-                 order_by=None, limit=0):
+    def get_data(self, select=None, query=None, order_by=None, limit=0,
+                 distinct=None, format=None, callback=None, count=False,
+                 num_retries=NUM_RETRIES):
         """
         Returns the rows in this dataset filtered by the given
         select and query.
         """
         @require_valid
-        def _get_data(self, select, query, order_by, limit):
+        def _get_data(self, select, query, order_by, limit, distinct,
+                      format, callback, count):
             params = {}
             if select:
                 if not isinstance(select, list):
@@ -267,15 +281,30 @@ class Dataset(object):
                 if not isinstance(order_by, basestring):
                     raise PyBambooException('order_by must be a string.')
                 params['order_by'] = order_by
+            if format:
+                if not isinstance(format, basestring):
+                    raise PyBambooException('format must be a string.')
+                params['format'] = format
+            if distinct:
+                if not isinstance(distinct, basestring):
+                    raise PyBambooException('distinct must be a string.')
+                params['distinct'] = distinct
+            if callback:
+                if not isinstance(callback, basestring):
+                    raise PyBambooException('callback must be a string.')
+                params['callback'] = callback
             if limit:
                 if not isinstance(limit, int):
                     raise PyBambooException('limit must be an int.')
                 params['limit'] = safe_json_dumps(
                     limit,
                     PyBambooException('limit is not JSON-serializable.'))
+            if count:
+                params['count'] = bool(count)
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
-        return _get_data(self, select, query, order_by, limit)
+        return _get_data(self, select, query, order_by, limit, distinct,
+                         format, callback, count)
 
     @require_valid
     def update_data(self, rows):
