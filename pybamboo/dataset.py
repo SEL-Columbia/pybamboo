@@ -410,6 +410,13 @@ class Dataset(object):
         return self._id
 
     @property
+    def version(self):
+        """
+        The version of bamboo where this dataset is stored.
+        """
+        return self._connection.version
+
+    @property
     def columns(self):
         """
         A list of column headers for this dataset.

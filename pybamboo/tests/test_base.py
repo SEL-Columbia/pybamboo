@@ -17,6 +17,12 @@ class TestBase(unittest.TestCase):
     NUM_COLS = 15
     NUM_ROWS = 19
     TEST_BAMBOO_URL = DEFAULT_BAMBOO_URL
+    VERSION_KEYS = [
+        'version',
+        'description',
+        'branch',
+        'commit',
+    ]
 
     def setUp(self):
         self.bamboo_url = self.TEST_BAMBOO_URL
@@ -56,6 +62,11 @@ class TestBase(unittest.TestCase):
             self._delete_dataset(self.aux_dataset)
         for dataset in self.datasets_to_delete:
             self._delete_dataset(dataset)
+
+    def assert_keys_in_dict(self, keys, d):
+        d_keys = d.keys()
+        for k in keys:
+            self.assertTrue(k in d_keys)
 
     def wait(self, seconds=5):
         time.sleep(seconds)
