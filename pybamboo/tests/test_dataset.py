@@ -73,6 +73,14 @@ class TestDataset(TestBase):
         result = self.dataset.add_calculation('double_amount = amount * 2')
         self.assertTrue(result)
 
+    def test_add_calculations(self):
+        formulae = [
+            'double_amount = amount * 2',
+            'triple_amount = amount * 3',
+        ]
+        result = self.dataset.add_calculations(formulae)
+        self.assertTrue(result)
+
     def test_add_invalid_calculation_a_priori(self):
         bad_calcs = [
             'just formula',

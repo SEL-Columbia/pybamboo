@@ -77,7 +77,7 @@ class Dataset(object):
                 return True
         return False
 
-    def _process_formula(self, formula, is_aggregation=False):
+    def _process_formula(self, formula, is_aggregation=False, as_dict=False):
         try:
             name, formula = self._split_formula(formula)
             if not is_aggregation:
@@ -90,6 +90,8 @@ class Dataset(object):
                     raise PyBambooException('"%s" is a calculation. '
                                             'Use Dataset.add_calculation() '
                                             'instead.' % formula)
+            if as_dict:
+                return {'name': name, 'formula': formula}
             return name, formula
         except ValueError:
             raise PyBambooException(
@@ -117,15 +119,23 @@ class Dataset(object):
         """
         Adds a calculation to this dataset in bamboo.
         """
+        return self.add_calculations([formula], num_retries)
+
+    def add_calculations(self, formulae, num_retries=NUM_RETRIES):
+        """
+        Adds a list of calculations to this dataset in bamboo.
+        """
         @require_valid
         @retry(num_retries)
-        def _add_calculation(self, formula):
-            name, formula = self._process_formula(formula)
-            data = {'name': name, 'formula': formula}
+        def _add_calculations(self, formulae):
+            data = [self._process_formula(formula, as_dict=True)
+                for formula in formulae]
+            files = {'json_file': ('formulae.json', safe_json_dumps(data,
+                    PyBambooException('formulae are not JSON-serializable')))}
             response = self._connection.make_api_request(
-                'POST', '/datasets/%s/calculations' % self._id, data=data)
+                'POST', '/datasets/%s/calculations' % self._id, files=files)
             return 'error' not in response.keys()
-        return _add_calculation(self, formula)
+        return _add_calculations(self, formulae)
 
     def add_aggregation(self, formula, groups=None, num_retries=NUM_RETRIES):
         """
