@@ -347,7 +347,7 @@ class Dataset(object):
                     'Datasets need to be instances of Dataset.')
             checked_datasets.append(dataset.id)
 
-        data = {'datasets': safe_json_dumps(
+        data = {'dataset_ids': safe_json_dumps(
             checked_datasets,
             PyBambooException('datasets is not JSON-serializable.'))}
         result = connection.make_api_request(
@@ -408,6 +408,13 @@ class Dataset(object):
         The id of this Dataset in bamboo.
         """
         return self._id
+
+    @property
+    def version(self):
+        """
+        The version of bamboo where this dataset is stored.
+        """
+        return self._connection.version
 
     @property
     def columns(self):
