@@ -30,4 +30,4 @@ class TestConnection(TestBase):
 
     def test_version(self):
         self.assert_keys_in_dict(self.VERSION_KEYS,
-            self.connection.version)
+                                 self.connection.version)

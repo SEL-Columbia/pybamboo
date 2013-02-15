@@ -39,7 +39,7 @@ class TestDataset(TestBase):
 
     def test_version(self):
         self.assert_keys_in_dict(self.VERSION_KEYS,
-            self.dataset.version)
+                                 self.dataset.version)
 
     def test_columns(self):
         self.wait()  # have to wait, bamboo issue #284
@@ -71,6 +71,14 @@ class TestDataset(TestBase):
 
     def test_add_calculation(self):
         result = self.dataset.add_calculation('double_amount = amount * 2')
+        self.assertTrue(result)
+
+    def test_add_calculations(self):
+        formulae = [
+            'double_amount = amount * 2',
+            'triple_amount = amount * 3',
+        ]
+        result = self.dataset.add_calculations(formulae)
         self.assertTrue(result)
 
     def test_add_invalid_calculation_a_priori(self):
