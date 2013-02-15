@@ -41,7 +41,7 @@ class Dataset(object):
         supplied one will be created automatically with the default options.
         """
         if dataset_id is None and url is None \
-            and path is None and content is None:
+                and path is None and content is None:
             raise PyBambooException(
                 'Must supply dataset_id, url, content or file path.')
 
@@ -63,7 +63,7 @@ class Dataset(object):
         if path is not None or content is not None:
             # TODO: check for bad file stuff?
             data = StringIO.StringIO(content) if content is not None \
-                                              else open(path)
+                else open(path)
             files = {'csv_file': ('data.csv', data)}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
@@ -129,9 +129,11 @@ class Dataset(object):
         @retry(num_retries)
         def _add_calculations(self, formulae):
             data = [self._process_formula(formula, as_dict=True)
-                for formula in formulae]
-            files = {'json_file': ('formulae.json', safe_json_dumps(data,
-                    PyBambooException('formulae are not JSON-serializable')))}
+                    for formula in formulae]
+            json_data = safe_json_dumps(
+                data,
+                PyBambooException('formulae are not JSON-serializable'))
+            files = {'json_file': ('formulae.json', json_data)}
             response = self._connection.make_api_request(
                 'POST', '/datasets/%s/calculations' % self._id, files=files)
             return 'error' not in response.keys()

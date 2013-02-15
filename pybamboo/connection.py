@@ -26,7 +26,7 @@ class Connection(object):
 
     @property
     def version(self):
-       return self.make_api_request('GET', '/version')
+        return self.make_api_request('GET', '/version')
 
     def make_api_request(self, http_method, url, data=None,
                          files=None, params=None):

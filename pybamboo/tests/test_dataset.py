@@ -39,7 +39,7 @@ class TestDataset(TestBase):
 
     def test_version(self):
         self.assert_keys_in_dict(self.VERSION_KEYS,
-            self.dataset.version)
+                                 self.dataset.version)
 
     def test_columns(self):
         self.wait()  # have to wait, bamboo issue #284
