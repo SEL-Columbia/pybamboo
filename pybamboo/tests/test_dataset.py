@@ -24,7 +24,7 @@ class TestDataset(TestBase):
         self._cleanup(dataset)
 
     def test_create_dataset_from_schema(self):
-        dataset = Dataset(schema=self.SCHEMA_FILE)
+        dataset = Dataset(schema_path=self.SCHEMA_FILE)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
@@ -37,13 +37,13 @@ class TestDataset(TestBase):
     def test_create_dataset_from_schema_with_data(self):
         # schema + JSON data
         dataset = Dataset(path=self.JSON_FILE, data_format='json',
-                          schema=self.SCHEMA_FILE)
+                          schema_path=self.SCHEMA_FILE)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
         # schema + CSV data
         dataset = Dataset(path=self.CSV_FILE, data_format='csv',
-                          schema=self.SCHEMA_FILE)
+                          schema_path=self.SCHEMA_FILE)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
@@ -53,7 +53,11 @@ class TestDataset(TestBase):
 
     def test_create_dataset_no_info(self):
         with self.assertRaises(PyBambooException):
-            self.dataset = Dataset()
+            dataset = Dataset()
+
+    def test_create_dataset_bad_data_format(self):
+        with self.assertRaises(PyBambooException):
+            dataset = Dataset(path=self.CSV_FILE, data_format='BAD')
 
     def test_create_dataset_from_file(self):
         # created in TestDataset.setUp()
