@@ -11,10 +11,41 @@ class TestDataset(TestBase):
 
     def _create_dataset_from_file(self):
         self.dataset = Dataset(path=self.CSV_FILE, connection=self.connection)
+        self.wait()
 
     def _create_aux_dataset_from_file(self):
         self.aux_dataset = Dataset(path=self.AUX_CSV_FILE,
                                    connection=self.connection)
+        self.wait()
+
+    def test_create_dataset_from_json(self):
+        dataset = Dataset(path=self.JSON_FILE, data_format='json')
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
+
+    def test_create_dataset_from_schema(self):
+        dataset = Dataset(schema_path=self.SCHEMA_FILE)
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
+
+        # schema string
+        schema_str = open(self.SCHEMA_FILE).read()
+        dataset = Dataset(schema_content=schema_str)
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
+
+    def test_create_dataset_from_schema_with_data(self):
+        # schema + JSON data
+        dataset = Dataset(path=self.JSON_FILE, data_format='json',
+                          schema_path=self.SCHEMA_FILE)
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
+
+        # schema + CSV data
+        dataset = Dataset(path=self.CSV_FILE, data_format='csv',
+                          schema_path=self.SCHEMA_FILE)
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
 
     def test_create_dataset_default_connection(self):
         dataset = Dataset(path=self.CSV_FILE)
@@ -22,7 +53,11 @@ class TestDataset(TestBase):
 
     def test_create_dataset_no_info(self):
         with self.assertRaises(PyBambooException):
-            self.dataset = Dataset()
+            dataset = Dataset()
+
+    def test_create_dataset_bad_data_format(self):
+        with self.assertRaises(PyBambooException):
+            dataset = Dataset(path=self.CSV_FILE, data_format='BAD')
 
     def test_create_dataset_from_file(self):
         # created in TestDataset.setUp()

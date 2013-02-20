@@ -27,23 +27,38 @@ class Dataset(object):
         'ratio',
         'count',
     ]
+    DATA_FORMATS = [
+        'csv',
+        'json',
+    ]
 
     def __init__(self, dataset_id=None, url=None,
-                 path=None, content=None, connection=None):
+                 path=None, content=None, data_format='csv',
+                 schema_path=None, schema_content=None,
+                 connection=None):
         """
         Create a new pybamboo.Dataset from one of the following:
             * dataset_id - the id of an existing bamboo.Dataset
             * url - url to a .csv file
-            * path - path to a local .csv file
-            * content - a CSV string
+            * path - path to a local .csv or .json file
+            * content - a CSV or JSON string
+            * data_format - whether path or content is csv | json
+            * schema_path - path to a JSON SDF schema
+            * schema_content - a JSON SDF string
 
         One can also pass in a pybamboo.Connection object.  If this is not
         supplied one will be created automatically with the default options.
         """
         if dataset_id is None and url is None \
-                and path is None and content is None:
+                and path is None and content is None \
+                and schema_path is None and schema_content is None:
             raise PyBambooException(
-                'Must supply dataset_id, url, content or file path.')
+                'Must supply dataset_id, url, content, schema or file path.')
+
+        if data_format not in self.DATA_FORMATS:
+            raise PyBambooException('Illegal data_format: %s. data_format'
+                                    ' must be one of %s' %
+                                    (data_format, self.DATA_FORMATS))
 
         if connection is None:
             self._connection = Connection()
@@ -53,20 +68,32 @@ class Dataset(object):
         if dataset_id is not None:
             # TODO: check if this dataset exists?
             self._id = dataset_id
+            return
 
         if url is not None:
             # TODO: check valid url?
             data = {'url': url}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', data).get('id')
+            return
+
+        # files might be overloaded by schema or path/content
+        files = {}
+
+        if schema_path is not None or schema_content is not None:
+            # TODO: check for bad file stuff?
+            schema_data = schema_content if schema_content is not None \
+                else open(schema_path)
+            files.update({'schema': ('data.schema.json', schema_data)})
 
         if path is not None or content is not None:
             # TODO: check for bad file stuff?
-            data = StringIO.StringIO(content) if content is not None \
-                else open(path)
-            files = {'csv_file': ('data.csv', data)}
-            self._id = self._connection.make_api_request(
-                'POST', '/datasets', files=files).get('id')
+            data = content if content is not None else open(path)
+            files.update({'%s_file' % data_format:
+                         ('data.%s' % data_format, data)})
+
+        self._id = self._connection.make_api_request('POST', '/datasets',
+                                                     files=files).get('id')
 
     def _split_formula(self, formula):
         return [token.strip() for token in formula.split('=', 1)]
