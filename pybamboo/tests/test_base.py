@@ -13,6 +13,7 @@ class TestBase(unittest.TestCase):
         pass
 
     CSV_FILE = os.getcwd() + '/tests/fixtures/good_eats.csv'
+    JSON_FILE = os.getcwd() + '/tests/fixtures/good_eats.json'
     AUX_CSV_FILE = os.getcwd() + '/tests/fixtures/good_eats_aux.csv'
     NUM_COLS = 15
     NUM_ROWS = 19

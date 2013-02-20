@@ -28,6 +28,11 @@ class TestDataset(TestBase):
         # created in TestDataset.setUp()
         self.assertTrue(self.dataset.id is not None)
 
+    def test_create_dataset_from_json(self):
+        dataset = Dataset(path=self.JSON_FILE, data_format='json')
+        self.assertTrue(dataset.id is not None)
+        self._cleanup(dataset)
+
     def test_create_dataset_from_url(self):
         dataset = Dataset(
             url='http://formhub.org/mberg/forms/good_eats/data.csv')

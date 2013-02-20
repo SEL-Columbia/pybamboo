@@ -29,7 +29,8 @@ class Dataset(object):
     ]
 
     def __init__(self, dataset_id=None, url=None,
-                 path=None, content=None, connection=None):
+                 path=None, data_format='csv',
+                 content=None, connection=None):
         """
         Create a new pybamboo.Dataset from one of the following:
             * dataset_id - the id of an existing bamboo.Dataset
@@ -64,7 +65,8 @@ class Dataset(object):
             # TODO: check for bad file stuff?
             data = StringIO.StringIO(content) if content is not None \
                 else open(path)
-            files = {'csv_file': ('data.csv', data)}
+            file_param = '%s_file' % data_format
+            files = {file_param: ('data.%s' % data_format, data)}
             self._id = self._connection.make_api_request(
                 'POST', '/datasets', files=files).get('id')
 
