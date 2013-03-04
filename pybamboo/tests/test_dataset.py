@@ -69,6 +69,19 @@ class TestDataset(TestBase):
         self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
+    def test_resample(self):
+        data = self.dataset.resample(date_column='submit_date',
+                                     interval='D',
+                                     how='mean')
+        self.assertTrue(data)
+
+    def test_resample_with_query(self):
+        data = self.dataset.resample(date_column='submit_date',
+                                     interval='D',
+                                     query={"food_type": "street_meat"},
+                                     how='sum')
+        self.assertTrue(data)
+
     def test_str(self):
         self.assertEqual(str(self.dataset), self.dataset.id)
 

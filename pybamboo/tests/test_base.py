@@ -22,6 +22,8 @@ class TestBase(unittest.TestCase):
         'description',
         'branch',
         'commit',
+        'version_major',
+        'version_minor'
     ]
 
     def setUp(self):
