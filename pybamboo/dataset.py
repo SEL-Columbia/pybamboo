@@ -345,6 +345,64 @@ class Dataset(object):
         return _get_data(self, select, query, order_by, limit, distinct,
                          format, callback, count)
 
+    def resample(self, date_column=None, interval=None, how=None,
+                 query=None, format=None,
+                 num_retries=NUM_RETRIES):
+        """
+        Returns the rows in this dataset resampled by a date column.
+
+        The parameters are
+
+            date_column: The date column to resample on.
+            interval: A code for the interval to use.
+                      Any pandas codes are accepted.
+                      e.g. 'D' for daily, 'W' for weekly, 'M' for monthly.
+                      Complete list: http://pytseries.sourceforge.net
+                                          /core.constants.html#date-frequencies
+            how: (Optional) How to calculate the grouped samples.
+                      e.g: sum, mean, std, max, min, median, first, last, ohlc
+                      or any function/numpy array function. default is 'mean'.
+            query: (Optional) A MongoDB query to restrict the dataset,
+                      to only data matching the query will be resampled.
+            format: (Optional) format of the resampled data (CSV/JSON).
+
+        """
+        @require_valid
+        def _resample(self, date_column, interval, how, query, format):
+            params = {}
+            if not date_column or not isinstance(date_column, basestring):
+                raise PyBambooException('date_column must be a string.')
+
+            params['date_column'] = date_column
+
+            if not interval or not isinstance(interval, basestring):
+                raise PyBambooException('interval must be a string '
+                                        'representing a frequency. cf. '
+                                        'http://pytseries.sourceforge.net/'
+                                        'core.constants.html#date-frequencies')
+            params['interval'] = interval
+
+            if how:
+                if not isinstance(how, basestring):
+                    raise PyBambooException('how must be a string.')
+                params['how'] = how
+
+            if format:
+                if not isinstance(format, basestring):
+                    raise PyBambooException('format must be a string.')
+                params['format'] = format
+
+            if query:
+                if not isinstance(query, dict):
+                    raise PyBambooException('query must be a dict.')
+                params['query'] = safe_json_dumps(
+                    query,
+                    PyBambooException('query is not JSON-serializable.'))
+
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s/resample' % self._id, params=params)
+        return _resample(self, date_column, interval, how, query, format)
+
     @require_valid
     def update_data(self, rows):
         """
