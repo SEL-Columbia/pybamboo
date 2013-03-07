@@ -86,6 +86,21 @@ class TestDataset(TestBase):
         data = self.dataset.rolling(win_type='boxcar', window=3)
         self.assertTrue(isinstance(data, list))
 
+    def test_set_info(self):
+        description = u"Meals rating worldwide"
+        attribution = u"mberg"
+        label = u"Good Eats"
+        license = u"Public Domain"
+        self.dataset.set_info(attribution=attribution,
+                      description=description,
+                      label=label,
+                      license=license)
+        infos = self.dataset.get_info()
+        self.assertEqual(infos['description'], description)
+        self.assertEqual(infos['attribution'], attribution)
+        self.assertEqual(infos['label'], label)
+        self.assertEqual(infos['license'], license)
+
     def test_str(self):
         self.assertEqual(str(self.dataset), self.dataset.id)
 
