@@ -291,6 +291,36 @@ class Dataset(object):
                 'GET', '/datasets/%s/info' % self._id, params=params)
         return _get_info(self, callback)
 
+    def set_info(self, attribution=None, description=None,
+                 label=None, license=None,
+                 num_retries=NUM_RETRIES):
+        """
+        Set metadata on the dataset
+        """
+        @require_valid
+        @retry(num_retries)
+        def _set_info(self, attribution, description, label, license):
+            params = {}
+            if attribution is not None:
+                if not isinstance(attribution, basestring):
+                    raise PyBambooException('attribution must be a string.')
+                params['attribution'] = attribution
+            if description is not None:
+                if not isinstance(description, basestring):
+                    raise PyBambooException('description must be a string.')
+                params['description'] = description
+            if label is not None:
+                if not isinstance(label, basestring):
+                    raise PyBambooException('label must be a string.')
+                params['label'] = label
+            if license is not None:
+                if not isinstance(license, basestring):
+                    raise PyBambooException('license must be a string.')
+                params['license'] = license
+            return self._connection.make_api_request(
+                'PUT', '/datasets/%s/info' % self._id, data=params)
+        return _set_info(self, attribution, description, label, license)
+
     def get_data(self, select=None, query=None, order_by=None, limit=0,
                  distinct=None, format=None, callback=None, count=False,
                  num_retries=NUM_RETRIES):
