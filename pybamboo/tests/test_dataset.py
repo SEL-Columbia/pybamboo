@@ -10,7 +10,8 @@ class TestDataset(TestBase):
         self._create_dataset_from_file()
 
     def _create_dataset_from_file(self):
-        self.dataset = Dataset(path=self.CSV_FILE, connection=self.connection)
+        self.dataset = Dataset(path=self.CSV_FILE,
+                               connection=self.connection)
         self.wait()
 
     def _create_aux_dataset_from_file(self):
@@ -19,45 +20,52 @@ class TestDataset(TestBase):
         self.wait()
 
     def test_create_dataset_from_json(self):
-        dataset = Dataset(path=self.JSON_FILE, data_format='json')
+        dataset = Dataset(path=self.JSON_FILE, data_format='json',
+                          connection=self.connection)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
     def test_create_dataset_from_schema(self):
-        dataset = Dataset(schema_path=self.SCHEMA_FILE)
+        dataset = Dataset(schema_path=self.SCHEMA_FILE,
+                          connection=self.connection)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
         # schema string
         schema_str = open(self.SCHEMA_FILE).read()
-        dataset = Dataset(schema_content=schema_str)
+        dataset = Dataset(schema_content=schema_str,
+                          connection=self.connection)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
     def test_create_dataset_from_schema_with_data(self):
         # schema + JSON data
         dataset = Dataset(path=self.JSON_FILE, data_format='json',
-                          schema_path=self.SCHEMA_FILE)
+                          schema_path=self.SCHEMA_FILE,
+                          connection=self.connection)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
         # schema + CSV data
         dataset = Dataset(path=self.CSV_FILE, data_format='csv',
-                          schema_path=self.SCHEMA_FILE)
+                          schema_path=self.SCHEMA_FILE,
+                          connection=self.connection)
         self.assertTrue(dataset.id is not None)
         self._cleanup(dataset)
 
     def test_create_dataset_default_connection(self):
-        dataset = Dataset(path=self.CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE,
+                          connection=self.default_connection)
         self._cleanup(dataset)
 
     def test_create_dataset_no_info(self):
         with self.assertRaises(PyBambooException):
-            dataset = Dataset()
+            Dataset()
 
     def test_create_dataset_bad_data_format(self):
         with self.assertRaises(PyBambooException):
-            dataset = Dataset(path=self.CSV_FILE, data_format='BAD')
+            Dataset(path=self.CSV_FILE, data_format='BAD',
+                              connection=self.connection)
 
     def test_create_dataset_from_file(self):
         # created in TestDataset.setUp()
@@ -65,7 +73,8 @@ class TestDataset(TestBase):
 
     def test_create_dataset_from_url(self):
         dataset = Dataset(
-            url='http://formhub.org/mberg/forms/good_eats/data.csv')
+            url='http://formhub.org/mberg/forms/good_eats/data.csv',
+            connection=self.connection)
         self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
@@ -410,8 +419,10 @@ class TestDataset(TestBase):
         self._cleanup(result)
 
     def test_merge_default_connection(self):
-        dataset = Dataset(path=self.CSV_FILE)
-        other_dataset = Dataset(path=self.CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE,
+                          connection=self.default_connection)
+        other_dataset = Dataset(path=self.CSV_FILE,
+                                connection=self.default_connection)
         result = Dataset.merge([dataset, other_dataset])
         self.assertTrue(isinstance(result, Dataset))
         self._cleanup(dataset)
@@ -441,8 +452,10 @@ class TestDataset(TestBase):
         self._cleanup(result)
 
     def test_join_default_connection(self):
-        dataset = Dataset(path=self.CSV_FILE)
-        aux_dataset = Dataset(path=self.AUX_CSV_FILE)
+        dataset = Dataset(path=self.CSV_FILE,
+                          connection=self.default_connection)
+        aux_dataset = Dataset(path=self.AUX_CSV_FILE,
+                              connection=self.default_connection)
         self.wait()
         result = Dataset.join(dataset, aux_dataset, 'food_type')
         self.assertTrue(isinstance(result, Dataset))
