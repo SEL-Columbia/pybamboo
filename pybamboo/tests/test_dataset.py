@@ -92,9 +92,9 @@ class TestDataset(TestBase):
         label = u"Good Eats"
         license = u"Public Domain"
         self.dataset.set_info(attribution=attribution,
-                      description=description,
-                      label=label,
-                      license=license)
+                              description=description,
+                              label=label,
+                              license=license)
         infos = self.dataset.get_info()
         self.assertEqual(infos['description'], description)
         self.assertEqual(infos['attribution'], attribution)
