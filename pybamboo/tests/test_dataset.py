@@ -82,6 +82,10 @@ class TestDataset(TestBase):
                                      how='sum')
         self.assertTrue(data)
 
+    def test_rolling(self):
+        data = self.dataset.rolling(win_type='boxcar', window=3)
+        self.assertTrue(isinstance(data, list))
+
     def test_str(self):
         self.assertEqual(str(self.dataset), self.dataset.id)
 

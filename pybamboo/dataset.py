@@ -403,6 +403,40 @@ class Dataset(object):
                 'GET', '/datasets/%s/resample' % self._id, params=params)
         return _resample(self, date_column, interval, how, query, format)
 
+    def rolling(self, win_type=None, window=None, format=None,
+                num_retries=NUM_RETRIES):
+        """
+            To compute moving or rolling statistics / moments
+
+            you can use the rolling request.
+            Any options that can be passed to the pandas
+            rolling_window function can be passed as parameters to bamboo.
+            http://pandas.pydata.org/pandas-docs/dev
+                /computation.html#moving-rolling-statistics-moments
+            Window types are passed as the win_type parameter.
+        """
+
+        @require_valid
+        def _rolling(self, win_type, window, format):
+            params = {}
+            if win_type:
+                if not isinstance(win_type, basestring):
+                    raise PyBambooException('win_type must be a string.')
+                params['win_type'] = win_type
+
+            if not window or not isinstance(window, int):
+                raise PyBambooException('window must be an int')
+            params['window'] = window
+
+            if format:
+                if not isinstance(format, basestring):
+                    raise PyBambooException('format must be a string.')
+                params['format'] = format
+
+            return self._connection.make_api_request(
+                'GET', '/datasets/%s/rolling' % self._id, params=params)
+        return _rolling(self, win_type, window, format)
+
     @require_valid
     def update_data(self, rows):
         """
