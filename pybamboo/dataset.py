@@ -301,19 +301,19 @@ class Dataset(object):
         @retry(num_retries)
         def _set_info(self, attribution, description, label, license):
             params = {}
-            if attribution:
+            if attribution is not None:
                 if not isinstance(attribution, basestring):
                     raise PyBambooException('attribution must be a string.')
                 params['attribution'] = attribution
-            if description:
+            if description is not None:
                 if not isinstance(description, basestring):
                     raise PyBambooException('description must be a string.')
                 params['description'] = description
-            if label:
+            if label is not None:
                 if not isinstance(label, basestring):
                     raise PyBambooException('label must be a string.')
                 params['label'] = label
-            if license:
+            if license is not None:
                 if not isinstance(license, basestring):
                     raise PyBambooException('license must be a string.')
                 params['license'] = license
