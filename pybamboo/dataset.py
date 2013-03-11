@@ -323,6 +323,7 @@ class Dataset(object):
 
     def get_data(self, select=None, query=None, order_by=None, limit=0,
                  distinct=None, format=None, callback=None, count=False,
+                 index=False,
                  num_retries=NUM_RETRIES):
         """
         Returns the rows in this dataset filtered by the given
@@ -330,7 +331,7 @@ class Dataset(object):
         """
         @require_valid
         def _get_data(self, select, query, order_by, limit, distinct,
-                      format, callback, count):
+                      format, callback, count, index):
             params = {}
             if select:
                 if not isinstance(select, list):
@@ -370,14 +371,15 @@ class Dataset(object):
                     PyBambooException('limit is not JSON-serializable.'))
             if count:
                 params['count'] = bool(count)
+            if index:
+                params['index'] = bool(index)
             return self._connection.make_api_request(
                 'GET', '/datasets/%s' % self._id, params=params)
         return _get_data(self, select, query, order_by, limit, distinct,
-                         format, callback, count)
+                         format, callback, count, index)
 
     def resample(self, date_column=None, interval=None, how=None,
-                 query=None, format=None,
-                 num_retries=NUM_RETRIES):
+                 query=None, format=None):
         """
         Returns the rows in this dataset resampled by a date column.
 
@@ -433,8 +435,7 @@ class Dataset(object):
                 'GET', '/datasets/%s/resample' % self._id, params=params)
         return _resample(self, date_column, interval, how, query, format)
 
-    def rolling(self, win_type=None, window=None, format=None,
-                num_retries=NUM_RETRIES):
+    def rolling(self, win_type=None, window=None, format=None):
         """
             To compute moving or rolling statistics / moments
 
@@ -562,6 +563,34 @@ class Dataset(object):
             return float(value.get(method))
         else:
             return sum((int(relval) for relval in value.values()))
+
+    @require_valid
+    def row(self, action=None, index=None, payload=None):
+        data = None
+        if not action in ('show', 'delete', 'edit'):
+            raise PyBambooException('Row action must be show|edit|delete.')
+        if not isinstance(index, int):
+            raise PyBambooException('index must be an int.')
+        if action == 'edit':
+            data = {"data": safe_json_dumps(payload, PyBambooException(
+                    'payload is not JSON-serializable'))}
+        http_action = {'show': 'GET',
+                       'delete': 'DELETE',
+                       'edit': 'PUT'}.get(action)
+        return self._connection.make_api_request(
+            http_action, '/datasets/%s/row/%d' % (self._id, index), data=data)
+
+    @require_valid
+    def delete_row(self, index):
+        return self.row(action='delete', index=index)
+
+    @require_valid
+    def get_row(self, index):
+        return self.row(action='show', index=index)
+
+    @require_valid
+    def update_row(self, index, data):
+        return self.row(action='edit', index=index, payload=data)
 
     @property
     def id(self):

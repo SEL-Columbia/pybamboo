@@ -65,7 +65,7 @@ class TestDataset(TestBase):
     def test_create_dataset_bad_data_format(self):
         with self.assertRaises(PyBambooException):
             Dataset(path=self.CSV_FILE, data_format='BAD',
-                              connection=self.connection)
+                    connection=self.connection)
 
     def test_create_dataset_from_file(self):
         # created in TestDataset.setUp()
@@ -109,6 +109,10 @@ class TestDataset(TestBase):
         self.assertEqual(infos['attribution'], attribution)
         self.assertEqual(infos['label'], label)
         self.assertEqual(infos['license'], license)
+
+    def test_index_present(self):
+        data = self.dataset.get_data(index=True)
+        self.assertTrue('index' in data[-1].keys())
 
     def test_str(self):
         self.assertEqual(str(self.dataset), self.dataset.id)
@@ -164,7 +168,7 @@ class TestDataset(TestBase):
         ]
         for calc in bad_calcs:
             with self.assertRaises(PyBambooException):
-                result = self.dataset.add_calculation(calc)
+                self.dataset.add_calculation(calc)
 
     def test_add_invalid_calculation_a_posteriori(self):
         result = self.dataset.add_calculation('double_amount = BAD')
@@ -278,15 +282,15 @@ class TestDataset(TestBase):
 
     def test_get_summary_bad_select(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(select='BAD')
+            self.dataset.get_summary(select='BAD')
 
     def test_get_summary_with_query(self):
         self.wait()  # TODO: remove (bamboo issue #276)
-        result = self.dataset.get_summary(query={'food_type': 'lunch'})
+        self.dataset.get_summary(query={'food_type': 'lunch'})
 
     def test_get_summary_bad_query(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(query='BAD')
+            self.dataset.get_summary(query='BAD')
 
     def test_get_summary_with_groups(self):
         self.wait()  # TODO: remove (bamboo issue #276)
@@ -302,7 +306,7 @@ class TestDataset(TestBase):
 
     def test_get_summary_bad_groups(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(groups='BAD')
+            self.dataset.get_summary(groups='BAD')
 
     def test_get_info(self):
         info_keys = [
@@ -396,7 +400,7 @@ class TestDataset(TestBase):
 
     def test_update_data_no_data(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.update_data([])
+            self.dataset.update_data([])
 
     def test_update_data_bad_data(self):
         bad_rows = [
@@ -406,7 +410,7 @@ class TestDataset(TestBase):
         ]
         for rows in bad_rows:
             with self.assertRaises(PyBambooException):
-                result = self.dataset.update_data(rows)
+                self.dataset.update_data(rows)
 
     def test_merge(self):
         # already have one dataset in self.dataset
@@ -433,7 +437,7 @@ class TestDataset(TestBase):
         dataset = {}
         other_dataset = []
         with self.assertRaises(PyBambooException):
-            result = Dataset.merge([dataset, other_dataset],
+            Dataset.merge([dataset, other_dataset],
                                    connection=self.connection)
 
     def test_merge_fail(self):
@@ -465,7 +469,7 @@ class TestDataset(TestBase):
 
     def test_join_bad_other_dataset(self):
         with self.assertRaises(PyBambooException):
-            result = Dataset.join(self.dataset, Exception(), 'food_type',
+            Dataset.join(self.dataset, Exception(), 'food_type',
                                   connection=self.connection)
 
     def test_join_bad_on(self):
@@ -474,3 +478,19 @@ class TestDataset(TestBase):
         result = Dataset.join(self.dataset, self.aux_dataset,
                               'BAD', connection=self.connection)
         self.assertFalse(result)
+
+    # /row/INDEX tests.
+    def test_get_row(self):
+        self.assertEqual(self.dataset.get_row(0)['comments'],
+                         u"Try the yogurt drink")
+
+    def test_update_row(self):
+        index = 2
+        comment = 'test'
+        self.dataset.update_row(index, {'comments': comment})
+        self.assertEqual(self.dataset.get_row(index)['comments'], comment)
+
+    def test_delete_row(self):
+        index = 10
+        self.dataset.delete_row(index=index)
+        self.assertTrue('error' in self.dataset.get_row(index))
