@@ -65,7 +65,7 @@ class TestDataset(TestBase):
     def test_create_dataset_bad_data_format(self):
         with self.assertRaises(PyBambooException):
             Dataset(path=self.CSV_FILE, data_format='BAD',
-                              connection=self.connection)
+                    connection=self.connection)
 
     def test_create_dataset_from_file(self):
         # created in TestDataset.setUp()
@@ -109,6 +109,10 @@ class TestDataset(TestBase):
         self.assertEqual(infos['attribution'], attribution)
         self.assertEqual(infos['label'], label)
         self.assertEqual(infos['license'], license)
+
+    def test_index_present(self):
+        data = self.dataset.get_data(index=True)
+        self.assertTrue('index' in data[-1].keys())
 
     def test_str(self):
         self.assertEqual(str(self.dataset), self.dataset.id)
@@ -474,3 +478,19 @@ class TestDataset(TestBase):
         result = Dataset.join(self.dataset, self.aux_dataset,
                               'BAD', connection=self.connection)
         self.assertFalse(result)
+
+    # /row/INDEX tests.
+    def test_get_row(self):
+        self.assertEqual(self.dataset.get_row(0)['comments'],
+                         u"Try the yogurt drink")
+
+    def test_update_row(self):
+        index = 2
+        comment = 'test'
+        self.dataset.update_row(index, {'comments': comment})
+        self.assertEqual(self.dataset.get_row(index)['comments'], comment)
+
+    def test_delete_row(self):
+        index = 10
+        self.dataset.delete_row(index=index)
+        self.assertTrue('error' in self.dataset.get_row(index))
