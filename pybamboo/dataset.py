@@ -1,8 +1,5 @@
 
 import StringIO
-from functools import wraps
-import math
-import time
 
 from pybamboo.connection import Connection
 from pybamboo.decorators import require_valid, retry
@@ -95,38 +92,6 @@ class Dataset(object):
         self._id = self._connection.make_api_request('POST', '/datasets',
                                                      files=files).get('id')
 
-    def _split_formula(self, formula):
-        return [token.strip() for token in formula.split('=', 1)]
-
-    def _is_formula_an_aggregation(self, formula):
-        for aggregation in self.AGGREGATIONS:
-            if formula.startswith(aggregation):
-                return True
-        return False
-
-    def _process_formula(self, formula, is_aggregation=False, as_dict=False):
-        try:
-            name, formula = self._split_formula(formula)
-            if not is_aggregation:
-                if self._is_formula_an_aggregation(formula):
-                    raise PyBambooException('"%s" is an aggregation. '
-                                            'Use Dataset.add_aggregation() '
-                                            'instead.' % formula)
-            else:
-                if not self._is_formula_an_aggregation(formula):
-                    raise PyBambooException('"%s" is a calculation. '
-                                            'Use Dataset.add_calculation() '
-                                            'instead.' % formula)
-            if as_dict:
-                return {'name': name, 'formula': formula}
-            return name, formula
-        except ValueError:
-            raise PyBambooException(
-                'Formulas must be of the form: "name = function".')
-        except AttributeError:
-            raise PyBambooException(
-                'Formulas must be expressed as strings.')
-
     def delete(self, num_retries=NUM_RETRIES):
         """
         Deletes the dataset from bamboo.
@@ -142,49 +107,64 @@ class Dataset(object):
             return success
         return _delete(self)
 
-    def add_calculation(self, formula, num_retries=NUM_RETRIES):
+    def add_calculation(self, name=None, formula=None, groups=None,
+                        num_retries=NUM_RETRIES):
         """
         Adds a calculation to this dataset in bamboo.
         """
-        return self.add_calculations([formula], num_retries)
+        @require_valid
+        @retry(num_retries)
+        def _add_calculation(self, formula, name, groups):
+            if formula is None or name is None \
+                or not isinstance(formula, basestring) \
+                or not isinstance(name, basestring):
 
-    def add_calculations(self, formulae, num_retries=NUM_RETRIES):
+                raise PyBambooException('name & formula must be strings.')
+
+            data = {'name': name, 'formula': formula}
+
+            if groups is not None:
+                if not isinstance(groups, list):
+                    raise PyBambooException('group must be a list of strings.')
+                data['group'] = ','.join(groups)
+
+            response = self._connection.make_api_request(
+                'POST', '/datasets/%s/calculations' % self._id, data=data)
+            return 'error' not in response.keys()
+        return _add_calculation(self, formula, name, groups)
+
+    def add_calculations(self,
+                         path=None,
+                         content=None,
+                         json=None,
+                         num_retries=NUM_RETRIES):
         """
         Adds a list of calculations to this dataset in bamboo.
         """
         @require_valid
         @retry(num_retries)
-        def _add_calculations(self, formulae):
-            data = [self._process_formula(formula, as_dict=True)
-                    for formula in formulae]
-            json_data = safe_json_dumps(
-                data,
-                PyBambooException('formulae are not JSON-serializable'))
-            files = {'json_file': ('formulae.json', json_data)}
+        def _add_calculations(self, path, content, json):
+
+            files = {}
+
+            if path is None and content is None and json is None:
+                raise PyBambooException('JSON fomulae must be provided as '
+                                        'JSON, path or content.')
+
+            if json is not None:
+                json_data = safe_json_dumps(json,
+                                            PyBambooException('formulae are '
+                                                              'not JSON-serial'
+                                                              'izable'))
+                content = StringIO.StringIO(json_data)
+            data = content if content is not None else open(path)
+
+            files.update({'json_file': ('data.json', data)})
+
             response = self._connection.make_api_request(
                 'POST', '/datasets/%s/calculations' % self._id, files=files)
             return 'error' not in response.keys()
-        return _add_calculations(self, formulae)
-
-    def add_aggregation(self, formula, groups=None, num_retries=NUM_RETRIES):
-        """
-        Adds an aggregation to this dataset in bamboo.
-        """
-        @require_valid
-        @retry(num_retries)
-        def _add_aggregation(self, formula, groups):
-            name, formula = self._process_formula(formula,
-                                                  is_aggregation=True)
-            data = {'name': name, 'formula': formula}
-            if groups is not None:
-                if not isinstance(groups, list):
-                    raise PyBambooException(
-                        'groups must be a list of strings.')
-                data['group'] = ','.join(groups)
-            response = self._connection.make_api_request(
-                'POST', '/datasets/%s/calculations' % self._id, data=data)
-            return 'error' not in response.keys()
-        return _add_aggregation(self, formula, groups)
+        return _add_calculations(self, path, content, json)
 
     def remove_calculation(self, name, num_retries=NUM_RETRIES):
         """
@@ -197,12 +177,6 @@ class Dataset(object):
                 'DELETE', '/datasets/%s/calculations/%s' % (self._id, name))
             return 'success' in response.keys()
         return _remove_calculation(self, name)
-
-    def remove_aggregation(self, name, num_retries=NUM_RETRIES):
-        """
-        Removes an aggregation from this dataset in bamboo.
-        """
-        return self.remove_calculation(name, num_retries)
 
     @require_valid
     def get_calculations(self):
@@ -222,6 +196,10 @@ class Dataset(object):
             'GET', '/datasets/%s/aggregations' % self._id)
         return dict([(group, Dataset(dataset_id, connection=self._connection))
                      for group, dataset_id in response.iteritems()])
+
+    @require_valid
+    def get_aggregations(self):
+        return self.get_aggregate_datasets()
 
     def get_summary(self, select='all', groups=None, query=None,
                     order_by=None, limit=0, callback=None,

@@ -150,15 +150,16 @@ class TestDataset(TestBase):
             self.dataset.delete()
 
     def test_add_calculation(self):
-        result = self.dataset.add_calculation('double_amount = amount * 2')
+        result = self.dataset.add_calculation(name='double_amount',
+                                              formula='amount * 2')
         self.assertTrue(result)
 
     def test_add_calculations(self):
         formulae = [
-            'double_amount = amount * 2',
-            'triple_amount = amount * 3',
+            {'name': 'double_amount', 'formula': 'amount * 2'},
+            {'name': 'triple_amount', 'formula': 'amount * 3'},
         ]
-        result = self.dataset.add_calculations(formulae)
+        result = self.dataset.add_calculations(json=formulae)
         self.assertTrue(result)
 
     def test_add_invalid_calculation_a_priori(self):
@@ -166,51 +167,53 @@ class TestDataset(TestBase):
             'just formula',
             3,
         ]
-        for calc in bad_calcs:
-            with self.assertRaises(PyBambooException):
-                self.dataset.add_calculation(calc)
+        with self.assertRaises(PyBambooException):
+            self.dataset.add_calculations(json=bad_calcs)
 
     def test_add_invalid_calculation_a_posteriori(self):
-        result = self.dataset.add_calculation('double_amount = BAD')
+        result = self.dataset.add_calculation(name='double_amount',
+                                              formula='BAD')
         self.assertEqual(result, False)
 
-    def test_add_aggregation_as_calculation(self):
-        for aggregation in Dataset.AGGREGATIONS:
-            with self.assertRaises(PyBambooException):
-                self.dataset.add_calculation('f = %s(foo)' % aggregation)
-
     def test_add_aggregation(self):
-        result = self.dataset.add_aggregation('sum_amount = sum(amount)')
+        result = self.dataset.add_calculation(name='sum_amount',
+                                              formula='sum(amount)')
         self.assertTrue(result)
         self.dataset.has_aggs_to_remove = True
 
     def test_add_aggregation_with_groups(self):
-        result = self.dataset.add_aggregation(
-            'sum_amount = sum(amount)', groups=['food_type'])
+        result = self.dataset.add_calculation(
+            name='sum_amount',
+            formula='sum(amount)',
+            groups=['food_type'])
         self.assertTrue(result)
-        result = self.dataset.add_aggregation(
-            'sum_amount = sum(amount)', groups=['food_type', 'rating'])
+        result = self.dataset.add_calculation(
+            name='sum_amount',
+            formula='sum(amount)',
+            groups=['food_type', 'rating'])
         self.assertTrue(result)
         self.dataset.has_aggs_to_remove = True
 
     def test_add_aggregation_invalid_groups(self):
         with self.assertRaises(PyBambooException):
-            self.dataset.add_aggregation(
-                'sum_amount = sum(amount)', groups='BAD')
-
-    def test_add_calculation_as_aggregation(self):
-        with self.assertRaises(PyBambooException):
-            self.dataset.add_aggregation('double_amount = amount * 2')
+            self.dataset.add_calculation(
+                name='sum_amount',
+                formula='sum(amount)',
+                groups='BAD')
 
     def test_remove_calculation(self):
-        self.dataset.add_calculation('double_amount = amount * 2')
-        result = self.dataset.remove_calculation('double_amount')
+        name = 'double_amount'
+        self.dataset.add_calculation(name=name,
+                                     formula='amount * 2')
+        result = self.dataset.remove_calculation(name)
         self.assertTrue(result)
 
     def test_remove_aggregation(self):
-        result = self.dataset.add_aggregation('sum_amount = sum(amount)')
+        name = 'sum_amount'
+        result = self.dataset.add_calculation(name=name,
+                                              formula='sum(amount)')
         self.assertTrue(result)
-        result = self.dataset.remove_aggregation('sum_amount')
+        result = self.dataset.remove_calculation(name)
         self.assertTrue(result)
         self.dataset.has_aggs_to_remove = True
 
@@ -220,7 +223,8 @@ class TestDataset(TestBase):
 
     def test_get_calculations(self):
         calc_keys = ['state', 'formula', 'group', 'name']
-        result = self.dataset.add_calculation('double_amount = amount * 2')
+        result = self.dataset.add_calculation(name='double_amount',
+                                              formula='amount * 2')
         self.assertEqual(result, True)
         result = self.dataset.get_calculations()
         self.assertTrue(isinstance(result, list))
@@ -238,15 +242,16 @@ class TestDataset(TestBase):
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 0)
-        self.dataset.add_aggregation('sum_amount = sum(amount)')
+        self.dataset.add_calculation(name='sum_amount',
+                                     formula='sum(amount)')
         self.wait()
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 1)
         self.assertTrue('' in result.keys())
         self.assertTrue(isinstance(result[''], Dataset))
-        self.dataset.add_aggregation(
-            'sum_amount = sum(amount)', groups=['food_type'])
+        self.dataset.add_calculation(
+            name='sum_amount', formula='sum(amount)', groups=['food_type'])
         self.wait()
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
@@ -438,12 +443,12 @@ class TestDataset(TestBase):
         other_dataset = []
         with self.assertRaises(PyBambooException):
             Dataset.merge([dataset, other_dataset],
-                                   connection=self.connection)
+                          connection=self.connection)
 
     def test_merge_fail(self):
         other_dataset = Dataset('12345', connection=self.connection)
         result = Dataset.merge([self.dataset, other_dataset],
-                              connection=self.connection)
+                               connection=self.connection)
         self.assertFalse(result)
 
     def test_join(self):
@@ -469,7 +474,7 @@ class TestDataset(TestBase):
     def test_join_bad_other_dataset(self):
         with self.assertRaises(PyBambooException):
             Dataset.join(self.dataset, Exception(), 'food_type',
-                                  connection=self.connection)
+                         connection=self.connection)
 
     def test_join_bad_on(self):
         self._create_aux_dataset_from_file()
