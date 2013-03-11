@@ -168,7 +168,7 @@ class TestDataset(TestBase):
         ]
         for calc in bad_calcs:
             with self.assertRaises(PyBambooException):
-                result = self.dataset.add_calculation(calc)
+                self.dataset.add_calculation(calc)
 
     def test_add_invalid_calculation_a_posteriori(self):
         result = self.dataset.add_calculation('double_amount = BAD')
@@ -282,15 +282,15 @@ class TestDataset(TestBase):
 
     def test_get_summary_bad_select(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(select='BAD')
+            self.dataset.get_summary(select='BAD')
 
     def test_get_summary_with_query(self):
         self.wait()  # TODO: remove (bamboo issue #276)
-        result = self.dataset.get_summary(query={'food_type': 'lunch'})
+        self.dataset.get_summary(query={'food_type': 'lunch'})
 
     def test_get_summary_bad_query(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(query='BAD')
+            self.dataset.get_summary(query='BAD')
 
     def test_get_summary_with_groups(self):
         self.wait()  # TODO: remove (bamboo issue #276)
@@ -306,7 +306,7 @@ class TestDataset(TestBase):
 
     def test_get_summary_bad_groups(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.get_summary(groups='BAD')
+            self.dataset.get_summary(groups='BAD')
 
     def test_get_info(self):
         info_keys = [
@@ -400,7 +400,7 @@ class TestDataset(TestBase):
 
     def test_update_data_no_data(self):
         with self.assertRaises(PyBambooException):
-            result = self.dataset.update_data([])
+            self.dataset.update_data([])
 
     def test_update_data_bad_data(self):
         bad_rows = [
@@ -410,7 +410,7 @@ class TestDataset(TestBase):
         ]
         for rows in bad_rows:
             with self.assertRaises(PyBambooException):
-                result = self.dataset.update_data(rows)
+                self.dataset.update_data(rows)
 
     def test_merge(self):
         # already have one dataset in self.dataset
@@ -437,7 +437,7 @@ class TestDataset(TestBase):
         dataset = {}
         other_dataset = []
         with self.assertRaises(PyBambooException):
-            result = Dataset.merge([dataset, other_dataset],
+            Dataset.merge([dataset, other_dataset],
                                    connection=self.connection)
 
     def test_merge_fail(self):
@@ -469,7 +469,7 @@ class TestDataset(TestBase):
 
     def test_join_bad_other_dataset(self):
         with self.assertRaises(PyBambooException):
-            result = Dataset.join(self.dataset, Exception(), 'food_type',
+            Dataset.join(self.dataset, Exception(), 'food_type',
                                   connection=self.connection)
 
     def test_join_bad_on(self):
