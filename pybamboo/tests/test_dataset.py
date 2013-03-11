@@ -442,10 +442,9 @@ class TestDataset(TestBase):
 
     def test_merge_fail(self):
         other_dataset = Dataset('12345', connection=self.connection)
-        # TODO: uncomment these lines (bamboo issue #283)
-        #result = Dataset.merge([self.dataset, other_dataset],
-        #                       connection=self.connection)
-        #self.assertFalse(result)
+        result = Dataset.merge([self.dataset, other_dataset],
+                              connection=self.connection)
+        self.assertFalse(result)
 
     def test_join(self):
         self._create_aux_dataset_from_file()
