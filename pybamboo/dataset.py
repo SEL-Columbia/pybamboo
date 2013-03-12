@@ -111,14 +111,22 @@ class Dataset(object):
                         num_retries=NUM_RETRIES):
         """
         Adds a calculation to this dataset in bamboo.
+
+        A calculation is defined by:
+        :param str name: the formula name by which you'll identify it.
+        :param str formula: the actual formula using bamboo syntax.
+            cf. http://bamboo.io/docs/index.html#formula-reference
+        :param list groups: optionnal, a list of fields to group on.
+
+        .. note ::
+            http://bamboo.io/docs/basic_commands.html#calculation-formulas
         """
         @require_valid
         @retry(num_retries)
         def _add_calculation(self, formula, name, groups):
-            if formula is None or name is None \
-                or not isinstance(formula, basestring) \
-                or not isinstance(name, basestring):
-
+            if (formula is None or name is None
+                or not isinstance(formula, basestring)
+                or not isinstance(name, basestring)):
                 raise PyBambooException('name & formula must be strings.')
 
             data = {'name': name, 'formula': formula}
@@ -139,7 +147,22 @@ class Dataset(object):
                          json=None,
                          num_retries=NUM_RETRIES):
         """
-        Adds a list of calculations to this dataset in bamboo.
+        Adds a JSON-formatted list of calculations to this dataset in bamboo.
+
+        Calculations are defined by a name, a formula and an optionnal grouping
+        This method takes a JSON list of dict, each containing:
+        * str name
+        * str formula
+        * list group (optionnal)
+
+        JSON content can be send in 3 ways:
+        :param str path: localation of a valid JSON file.
+        :param StringIO content: a file-like object containing valid JSON
+        :param dict json: a Python list of dict to be serialized.
+
+        .. note ::
+            http://bamboo.io/docs/advanced_commands.html
+                                  #creating-multiple-calculations-via-json
         """
         @require_valid
         @retry(num_retries)
