@@ -82,7 +82,7 @@ class TestDataset(TestBase):
         dataset = Dataset(
             url='http://formhub.org/mberg/forms/good_eats/data.csv',
             connection=self.connection,
-            na_values=['n/a',])
+            na_values=['n/a'])
         self.wait()
         first_row = dataset.get_data(limit=1)[-1]
         self.assertEqual(first_row.get('comments'), 'null')

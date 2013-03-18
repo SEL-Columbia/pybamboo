@@ -65,10 +65,9 @@ class Dataset(object):
                 raise PyBambooException('N/A values must be a list.')
             self.NA_VALUES = na_values
             req_data.update({'na_values':
-                                safe_json_dumps(na_values,
-                                                PyBambooException('na_values '
-                                                    'are not JSON-'
-                                                    'serializable'))})
+                             safe_json_dumps(na_values,
+                                             PyBambooException('na_values '
+                                             'are not JSON-serializable'))})
 
         if connection is None:
             self._connection = Connection()
