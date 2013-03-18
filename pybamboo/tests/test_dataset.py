@@ -80,11 +80,15 @@ class TestDataset(TestBase):
 
     def test_na_values(self):
         dataset = Dataset(
-            url='http://formhub.org/mberg/forms/good_eats/data.csv',
+            path=self.CSV_FILE,
             connection=self.connection,
             na_values=['n/a'])
         self.wait()
-        first_row = dataset.get_data(limit=1)[-1]
+        first_row = dataset.get_data(query={'food_type': 'street_meat',
+                                            'amount': 2,
+                                            'rating': 'delectible',
+                                            'risk_factor': 'low_risk'},
+                                     limit=1)[-1]
         self.assertEqual(first_row.get('comments'), 'null')
         self._cleanup(dataset)
 
