@@ -13,6 +13,7 @@ class Dataset(object):
     """
 
     _id = None
+    NA_VALUES = []
     NUM_RETRIES = 3.0
     AGGREGATIONS = [
         'max',
@@ -32,6 +33,7 @@ class Dataset(object):
     def __init__(self, dataset_id=None, url=None,
                  path=None, content=None, data_format='csv',
                  schema_path=None, schema_content=None,
+                 na_values=None,
                  connection=None):
         """
         Create a new pybamboo.Dataset from one of the following:
@@ -57,6 +59,17 @@ class Dataset(object):
                                     ' must be one of %s' %
                                     (data_format, self.DATA_FORMATS))
 
+        req_data = {}
+        if na_values is not None:
+            if not isinstance(na_values, (list, tuple, set)):
+                raise PyBambooException('N/A values must be a list.')
+            self.NA_VALUES = na_values
+            req_data.update({'na_values':
+                                safe_json_dumps(na_values,
+                                                PyBambooException('na_values '
+                                                    'are not JSON-'
+                                                    'serializable'))})
+
         if connection is None:
             self._connection = Connection()
         else:
@@ -69,9 +82,9 @@ class Dataset(object):
 
         if url is not None:
             # TODO: check valid url?
-            data = {'url': url}
+            req_data.update({'url': url})
             self._id = self._connection.make_api_request(
-                'POST', '/datasets', data).get('id')
+                'POST', '/datasets', req_data).get('id')
             return
 
         # files might be overloaded by schema or path/content
@@ -90,7 +103,8 @@ class Dataset(object):
                          ('data.%s' % data_format, data)})
 
         self._id = self._connection.make_api_request('POST', '/datasets',
-                                                     files=files).get('id')
+                                                     files=files,
+                                                     data=req_data).get('id')
 
     def delete(self, num_retries=NUM_RETRIES):
         """

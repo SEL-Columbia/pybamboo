@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='pybamboo',
-    version='0.5.7.8',
+    version='0.5.8.1',
     author='modilabs',
     author_email='info@modilabs.org',
     packages=['pybamboo'],

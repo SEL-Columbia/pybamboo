@@ -78,6 +78,16 @@ class TestDataset(TestBase):
         self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
+    def test_na_values(self):
+        dataset = Dataset(
+            url='http://formhub.org/mberg/forms/good_eats/data.csv',
+            connection=self.connection,
+            na_values=['n/a',])
+        self.wait()
+        first_row = dataset.get_data(limit=1)[-1]
+        self.assertEqual(first_row.get('comments'), 'null')
+        self._cleanup(dataset)
+
     def test_resample(self):
         data = self.dataset.resample(date_column='submit_date',
                                      interval='D',
@@ -235,6 +245,7 @@ class TestDataset(TestBase):
                 self.assertTrue(key in keys)
         self.assertEqual(result[0]['state'], 'pending')
         self.wait()
+        self.wait()
         result = self.dataset.get_calculations()
         self.assertEqual(result[0]['state'], 'ready')
 
@@ -245,6 +256,7 @@ class TestDataset(TestBase):
         self.dataset.add_calculation(name='sum_amount',
                                      formula='sum(amount)')
         self.wait()
+        self.wait()
         result = self.dataset.get_aggregate_datasets()
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 1)
@@ -253,7 +265,9 @@ class TestDataset(TestBase):
         self.dataset.add_calculation(
             name='sum_amount', formula='sum(amount)', groups=['food_type'])
         self.wait()
+        self.wait()
         result = self.dataset.get_aggregate_datasets()
+        print(result)
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 2)
         self.assertTrue('food_type' in result.keys())
@@ -466,6 +480,7 @@ class TestDataset(TestBase):
                               connection=self.default_connection)
         self.wait()
         result = Dataset.join(dataset, aux_dataset, 'food_type')
+        self.wait()
         self.assertTrue(isinstance(result, Dataset))
         self._cleanup(dataset)
         self._cleanup(aux_dataset)
