@@ -187,7 +187,7 @@ class TestDataset(TestBase):
                 self.dataset.add_calculation(**calc)
 
         with self.assertRaises(PyBambooException):
-            self.dataset.add_calculations(json=bad_calcs)
+            self.dataset.add_calculations()
 
     def test_add_invalid_calculation_a_posteriori(self):
         result = self.dataset.add_calculation(name='double_amount',
@@ -276,7 +276,6 @@ class TestDataset(TestBase):
         self.wait()
         self.wait()
         result = self.dataset.get_aggregate_datasets()
-        print(result)
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 2)
         self.assertTrue('food_type' in result.keys())
