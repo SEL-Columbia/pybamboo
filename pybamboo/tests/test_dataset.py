@@ -178,9 +178,14 @@ class TestDataset(TestBase):
 
     def test_add_invalid_calculation_a_priori(self):
         bad_calcs = [
-            'just formula',
-            3,
+            {'name': None, 'formula': 'ok'},
+            {'name': 'number', 'formula': 3},
+            {'name': 'number', 'formula': 'ok', 'groups': 3},
         ]
+        for calc in bad_calcs:
+            with self.assertRaises(PyBambooException):
+                self.dataset.add_calculation(**calc)
+
         with self.assertRaises(PyBambooException):
             self.dataset.add_calculations(json=bad_calcs)
 
