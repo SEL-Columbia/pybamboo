@@ -78,6 +78,17 @@ class TestDataset(TestBase):
         self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
+    def test_reset_dataset(self):
+        dataset_id = self.dataset._id
+        self.dataset.reset(path=self.CSV_FILE,
+                           connection=self.connection)
+        self.assertEqual(self.dataset._id, dataset_id)
+
+    def test_reset_dataset_no_dataset_id(self):
+        self.dataset.delete()
+        with self.assertRaises(PyBambooException):
+            self.dataset.reset()
+
     def test_na_values(self):
         dataset = Dataset(
             path=self.CSV_FILE,
@@ -178,11 +189,16 @@ class TestDataset(TestBase):
 
     def test_add_invalid_calculation_a_priori(self):
         bad_calcs = [
-            'just formula',
-            3,
+            {'name': None, 'formula': 'ok'},
+            {'name': 'number', 'formula': 3},
+            {'name': 'number', 'formula': 'ok', 'groups': 3},
         ]
+        for calc in bad_calcs:
+            with self.assertRaises(PyBambooException):
+                self.dataset.add_calculation(**calc)
+
         with self.assertRaises(PyBambooException):
-            self.dataset.add_calculations(json=bad_calcs)
+            self.dataset.add_calculations()
 
     def test_add_invalid_calculation_a_posteriori(self):
         result = self.dataset.add_calculation(name='double_amount',
@@ -271,7 +287,6 @@ class TestDataset(TestBase):
         self.wait()
         self.wait()
         result = self.dataset.get_aggregate_datasets()
-        print(result)
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(len(result), 2)
         self.assertTrue('food_type' in result.keys())

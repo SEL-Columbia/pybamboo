@@ -33,8 +33,7 @@ class Dataset(object):
     def __init__(self, dataset_id=None, url=None,
                  path=None, content=None, data_format='csv',
                  schema_path=None, schema_content=None,
-                 na_values=None,
-                 connection=None):
+                 na_values=None, connection=None, reset=False):
         """
         Create a new pybamboo.Dataset from one of the following:
             * dataset_id - the id of an existing bamboo.Dataset
@@ -60,6 +59,9 @@ class Dataset(object):
                                     (data_format, self.DATA_FORMATS))
 
         req_data = {}
+        if reset:
+            req_data.update({'dataset_id': self._id})
+
         if na_values is not None:
             if not isinstance(na_values, (list, tuple, set)):
                 raise PyBambooException('N/A values must be a list.')
@@ -105,6 +107,14 @@ class Dataset(object):
                                                      files=files,
                                                      data=req_data).get('id')
 
+    def reset(self, **kwargs):
+        """
+        Resets the dataset in bamboo.
+        """
+        if self._id is None:
+            raise PyBambooException('This dataset no longer exists.')
+        self.__init__(reset=True, **kwargs)
+
     def delete(self, num_retries=NUM_RETRIES):
         """
         Deletes the dataset from bamboo.
@@ -138,8 +148,8 @@ class Dataset(object):
         @retry(num_retries)
         def _add_calculation(self, formula, name, groups):
             if (formula is None or name is None
-                or not isinstance(formula, basestring)
-                or not isinstance(name, basestring)):
+                    or not isinstance(formula, basestring)
+                    or not isinstance(name, basestring)):
                 raise PyBambooException('name & formula must be strings.')
 
             data = {'name': name, 'formula': formula}
