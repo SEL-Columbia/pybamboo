@@ -78,6 +78,17 @@ class TestDataset(TestBase):
         self.assertTrue(self.dataset.id is not None)
         self._cleanup(dataset)
 
+    def test_reset_dataset(self):
+        dataset_id = self.dataset._id
+        self.dataset.reset(path=self.CSV_FILE,
+                           connection=self.connection)
+        self.assertEqual(self.dataset._id, dataset_id)
+
+    def test_reset_dataset_no_dataset_id(self):
+        self.dataset.delete()
+        with self.assertRaises(PyBambooException):
+            self.dataset.reset()
+
     def test_na_values(self):
         dataset = Dataset(
             path=self.CSV_FILE,
