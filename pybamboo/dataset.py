@@ -111,7 +111,7 @@ class Dataset(object):
         """
         Resets the dataset in bamboo.
         """
-        if self._id == None:
+        if self._id is None:
             raise PyBambooException('This dataset no longer exists.')
         self.__init__(reset=True, **kwargs)
 
@@ -148,8 +148,8 @@ class Dataset(object):
         @retry(num_retries)
         def _add_calculation(self, formula, name, groups):
             if (formula is None or name is None
-                or not isinstance(formula, basestring)
-                or not isinstance(name, basestring)):
+                    or not isinstance(formula, basestring)
+                    or not isinstance(name, basestring)):
                 raise PyBambooException('name & formula must be strings.')
 
             data = {'name': name, 'formula': formula}
