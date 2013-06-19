@@ -410,6 +410,11 @@ class TestDataset(TestBase):
             self.assertTrue('food_type' in cols)
             self.assertTrue('amount' in cols)
 
+    def test_get_data_with_format(self):
+        self.wait()  # TODO: remove (bamboo issue #285)
+        result = self.dataset.get_data(format='csv')
+        self.assertTrue(isinstance(result, basestring))
+
     def test_get_data_invalid_select(self):
         with self.assertRaises(PyBambooException):
             self.dataset.get_data(select='BAD')
@@ -417,6 +422,10 @@ class TestDataset(TestBase):
     def test_get_data_invalid_query(self):
         with self.assertRaises(PyBambooException):
             self.dataset.get_data(query='BAD')
+
+    def test_get_data_with_invalid_format(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.get_data(format='BAD')
 
     def test_get_data_bad_query(self):
         self.wait()  # TODO: remove (bamboo issue #285)

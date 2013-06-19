@@ -39,7 +39,13 @@ class Connection(object):
         response = http_function[http_method](
             self.url + url, data=data, files=files, params=params)
         #self._check_response(response)
-        return safe_json_loads(response.text, ErrorParsingBambooData)
+        return self._process_response(response)
+
+    def _process_response(self, response):
+        if response.headers.get('content-type') == 'application/csv':
+            return response.content
+        else:  # assume json
+            return safe_json_loads(response.text, ErrorParsingBambooData)
 
     def _check_response(self, response):
         if not response.status_code in OK_STATUS_CODES:

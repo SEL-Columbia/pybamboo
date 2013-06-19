@@ -378,6 +378,9 @@ class Dataset(object):
             if format:
                 if not isinstance(format, basestring):
                     raise PyBambooException('format must be a string.')
+                if format not in self.DATA_FORMATS:
+                    raise PyBambooException('format must be one of: %s.' %
+                                            self.DATA_FORMATS)
                 params['format'] = format
             if distinct:
                 if not isinstance(distinct, basestring):
