@@ -19,6 +19,12 @@ class TestDataset(TestBase):
                                    connection=self.connection)
         self.wait()
 
+    def _wait_for_dataset_ready(self):
+        print self.dataset.state
+        while self.dataset.state == 'pending':
+            print self.dataset.state
+            self.wait()
+
     def test_create_dataset_from_json(self):
         dataset = Dataset(path=self.JSON_FILE, data_format='json',
                           connection=self.connection)
@@ -170,7 +176,7 @@ class TestDataset(TestBase):
         self.assertEqual(count, 19)
 
     def test_data_count(self):
-        self.wait()
+        self._wait_for_dataset_ready()  # TODO: is this necessary?
         count = self.dataset.get_data(count=True)
         self.assertEqual(count, 19)
 
@@ -547,6 +553,9 @@ class TestDataset(TestBase):
         self.assertEqual(self.dataset.get_row(index)['comments'], comment)
 
     def test_delete_row(self):
+        self._wait_for_dataset_ready()  # TODO: is this necessary?
         index = 10
         self.dataset.delete_row(index=index)
-        self.assertTrue('error' in self.dataset.get_row(index))
+        result = self.dataset.get_row(index)
+        print result
+        self.assertTrue('error' in result)
