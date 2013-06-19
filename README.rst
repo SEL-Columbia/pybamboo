@@ -19,7 +19,7 @@ Versions
 --------
 
 Starting with version 0.5.7.8, pybamboo version matches bamboo.io API version.
-0.5.7.x means that it works with bamboo version 0.5.7.
+0.5.8.x means that it works with bamboo version 0.5.8.
 x epresenting the internal pybamboo updates.
 
 Testing
