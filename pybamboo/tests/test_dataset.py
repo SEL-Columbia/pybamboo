@@ -20,9 +20,7 @@ class TestDataset(TestBase):
         self.wait()
 
     def _wait_for_dataset_ready(self):
-        print self.dataset.state
         while self.dataset.state == 'pending':
-            print self.dataset.state
             self.wait()
 
     def test_create_dataset_from_json(self):
@@ -523,7 +521,6 @@ class TestDataset(TestBase):
                               connection=self.default_connection)
         self.wait()
         result = Dataset.join(dataset, aux_dataset, 'food_type')
-        print 'result: %s' % result
         self.wait()
         self.assertTrue(isinstance(result, Dataset))
         self._cleanup(dataset)
@@ -558,5 +555,4 @@ class TestDataset(TestBase):
         index = 10
         self.dataset.delete_row(index=index)
         result = self.dataset.get_row(index)
-        print result
         self.assertTrue('error' in result)
