@@ -642,6 +642,27 @@ class Dataset(object):
         cols.sort()
         return cols
 
+    @property
+    def state(self):
+        """
+        The state of this dataset.
+        """
+        return self.get_info()['state']
+
+    @property
+    def num_columns(self):
+        """
+        The number of columns in this dataset.
+        """
+        return self.get_info()['num_columns']
+
+    @property
+    def num_rows(self):
+        """
+        The number of rows in this dataset.
+        """
+        return self.get_info()['num_rows']
+
     def __nonzero__(self):
         """
         Returns True if self._id is not None.

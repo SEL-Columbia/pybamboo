@@ -155,6 +155,18 @@ class TestDataset(TestBase):
         for col in cols:
             self.assertTrue(col in keys)
 
+    def test_state(self):
+        self.wait()
+        self.assertEqual(self.dataset.state, 'ready')
+
+    def test_num_columns(self):
+        self.wait()
+        self.assertEqual(self.dataset.num_columns, 15)
+
+    def test_num_rows(self):
+        self.wait()
+        self.assertEqual(self.dataset.num_rows, 19)
+
     def test_count(self):
         self.wait()
         count = self.dataset.count(field='food_type', method='count')
