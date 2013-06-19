@@ -4,6 +4,6 @@ python:
 install:
   - pip install -r requirements.pip --use-mirrors
   - pip install -r requirements-test.pip --use-mirrors
-script: cd pybamboo && nosetests
+script: cd pybamboo && nosetests --nocapture
 notifications:
   irc: "irc.freenode.org#moditest"
