@@ -523,6 +523,7 @@ class TestDataset(TestBase):
                               connection=self.default_connection)
         self.wait()
         result = Dataset.join(dataset, aux_dataset, 'food_type')
+        print 'result: %s' % result
         self.wait()
         self.assertTrue(isinstance(result, Dataset))
         self._cleanup(dataset)
