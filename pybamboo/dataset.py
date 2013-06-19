@@ -378,6 +378,9 @@ class Dataset(object):
             if format:
                 if not isinstance(format, basestring):
                     raise PyBambooException('format must be a string.')
+                if format not in self.DATA_FORMATS:
+                    raise PyBambooException('format must be one of: %s.' %
+                                            self.DATA_FORMATS)
                 params['format'] = format
             if distinct:
                 if not isinstance(distinct, basestring):
@@ -638,6 +641,27 @@ class Dataset(object):
         cols = self.get_info()['schema'].keys()
         cols.sort()
         return cols
+
+    @property
+    def state(self):
+        """
+        The state of this dataset.
+        """
+        return self.get_info()['state']
+
+    @property
+    def num_columns(self):
+        """
+        The number of columns in this dataset.
+        """
+        return self.get_info()['num_columns']
+
+    @property
+    def num_rows(self):
+        """
+        The number of rows in this dataset.
+        """
+        return self.get_info()['num_rows']
 
     def __nonzero__(self):
         """

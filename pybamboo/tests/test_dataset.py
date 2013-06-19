@@ -19,6 +19,10 @@ class TestDataset(TestBase):
                                    connection=self.connection)
         self.wait()
 
+    def _wait_for_dataset_ready(self):
+        while self.dataset.state == 'pending':
+            self.wait()
+
     def test_create_dataset_from_json(self):
         dataset = Dataset(path=self.JSON_FILE, data_format='json',
                           connection=self.connection)
@@ -155,13 +159,22 @@ class TestDataset(TestBase):
         for col in cols:
             self.assertTrue(col in keys)
 
+    def test_state(self):
+        self.assertEqual(self.dataset.state, 'ready')
+
+    def test_num_columns(self):
+        self.assertEqual(self.dataset.num_columns, 15)
+
+    def test_num_rows(self):
+        self.assertEqual(self.dataset.num_rows, 19)
+
     def test_count(self):
         self.wait()
         count = self.dataset.count(field='food_type', method='count')
         self.assertEqual(count, 19)
 
     def test_data_count(self):
-        self.wait()
+        self._wait_for_dataset_ready()  # TODO: is this necessary?
         count = self.dataset.get_data(count=True)
         self.assertEqual(count, 19)
 
@@ -410,6 +423,11 @@ class TestDataset(TestBase):
             self.assertTrue('food_type' in cols)
             self.assertTrue('amount' in cols)
 
+    def test_get_data_with_format(self):
+        self.wait()  # TODO: remove (bamboo issue #285)
+        result = self.dataset.get_data(format='csv')
+        self.assertTrue(isinstance(result, basestring))
+
     def test_get_data_invalid_select(self):
         with self.assertRaises(PyBambooException):
             self.dataset.get_data(select='BAD')
@@ -417,6 +435,10 @@ class TestDataset(TestBase):
     def test_get_data_invalid_query(self):
         with self.assertRaises(PyBambooException):
             self.dataset.get_data(query='BAD')
+
+    def test_get_data_with_invalid_format(self):
+        with self.assertRaises(PyBambooException):
+            self.dataset.get_data(format='BAD')
 
     def test_get_data_bad_query(self):
         self.wait()  # TODO: remove (bamboo issue #285)
@@ -529,6 +551,8 @@ class TestDataset(TestBase):
         self.assertEqual(self.dataset.get_row(index)['comments'], comment)
 
     def test_delete_row(self):
+        self._wait_for_dataset_ready()  # TODO: is this necessary?
         index = 10
         self.dataset.delete_row(index=index)
-        self.assertTrue('error' in self.dataset.get_row(index))
+        result = self.dataset.get_row(index)
+        self.assertTrue('error' in result)
